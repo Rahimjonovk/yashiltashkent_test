@@ -1,0 +1,14 @@
+{
+  "name": "yashil-toshkent",
+  "version": "1.0.0",
+  "description": "Yashil Toshkent: map of tree and green-space problems with web site, moderator panel, super admin panel and Telegram bot (shared data)",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": { "node": ">=18.17" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test",
+    "reset-admin": "node server/reset-admin.js"
+  }
+}

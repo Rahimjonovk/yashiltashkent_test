@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Yashil Toshkent — daraxt va yashil hudud xaritasi</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#E8EEE4; --panel:#F6F8F3; --input:#FFFFFF; --ink:#173020; --muted:#53655A; --line:#C8D4C3;
+  --accent:#2B7447; --accent-ink:#FFFFFF; --focus:#1B5FA8;
+  --map:#DDE7D8; --band:#D3E0CD; --grid:#C9D7C3; --ring:#B3C8AB; --you:#1F6FEB; --danger:#B3261E;
+  --t-chirigan:#8F5322; --t-zarar:#D26A12; --t-qurigan:#B08A12; --t-kesish:#C42B2B; --t-yashil:#2A6DB3;
+  --s-yangi:#3F5F85; --s-korib:#8F5A00; --s-hal:#1F6B3F; --s-rad:#6B5B5B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1913; --panel:#16221B; --input:#0F1913; --ink:#E3EDE0; --muted:#9BAE9F; --line:#2A3B30;
+    --accent:#6CC38C; --accent-ink:#0C1A11; --focus:#7DB6F0;
+    --map:#132019; --band:#182A20; --grid:#223428; --ring:#2F4A38; --you:#5AA2FF; --danger:#F08A82;
+    --t-chirigan:#C98A4B; --t-zarar:#F08A3C; --t-qurigan:#D9B84A; --t-kesish:#EF6A6A; --t-yashil:#5AA2E6;
+    --s-yangi:#8DB3DB; --s-korib:#E3B15A; --s-hal:#74CF97; --s-rad:#B6A6A6;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1913; --panel:#16221B; --input:#0F1913; --ink:#E3EDE0; --muted:#9BAE9F; --line:#2A3B30;
+  --accent:#6CC38C; --accent-ink:#0C1A11; --focus:#7DB6F0;
+  --map:#132019; --band:#182A20; --grid:#223428; --ring:#2F4A38; --you:#5AA2FF; --danger:#F08A82;
+  --t-chirigan:#C98A4B; --t-zarar:#F08A3C; --t-qurigan:#D9B84A; --t-kesish:#EF6A6A; --t-yashil:#5AA2E6;
+  --s-yangi:#8DB3DB; --s-korib:#E3B15A; --s-hal:#74CF97; --s-rad:#B6A6A6;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;margin:0;line-height:1.15;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+
+/* Header */
+.top{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.logo{flex:0 0 auto;width:34px;height:34px}
+.brand{min-width:0}
+.brand h1{font-size:20px;font-weight:700}
+.brand p{margin:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.pill.live i{background:var(--s-hal)}
+.pill.off i{background:var(--s-korib)}
+.pill.admin{color:var(--accent);border-color:var(--accent)}
+
+/* Layout */
+main{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+#side{min-height:0;overflow:auto;background:var(--panel);border-right:1px solid var(--line);-webkit-overflow-scrolling:touch}
+#mapwrap{position:relative;min-height:0;min-width:0;background:var(--map)}
+#cv{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.leaflet-container{font:inherit;background:var(--map)}
+.leaflet-control-attribution{font-size:11px}
+.pin{position:relative;width:30px;height:30px}
+.pin svg{width:28px;height:28px;margin:1px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.pin.urg::before{content:"";position:absolute;inset:-4px;border:2px solid var(--danger);border-radius:50%}
+.pin.sel::after{content:"";position:absolute;inset:-9px;border-radius:50%;background:var(--accent);opacity:.28;z-index:-1}
+.pin.fade{opacity:.55}
+.pin .tick{position:absolute;right:-4px;top:-4px;width:15px;height:15px;border-radius:50%;background:var(--s-hal);color:#fff;font:700 10px/15px sans-serif;text-align:center;font-style:normal}
+.pin.draft::before{content:"";position:absolute;inset:-6px;border:2px dashed var(--accent);border-radius:50%}
+.pin .dot{position:absolute;inset:8px;border-radius:50%;background:var(--accent);border:2.5px solid var(--panel)}
+.chips,.ctrls,.hint{z-index:1000}
+@media (max-width:820px){
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(230px,42%) minmax(0,1fr)}
+  #mapwrap{order:1}
+  #side{order:2;border-right:0;border-top:1px solid var(--line)}
+  .brand p{display:none}
+}
+
+/* Map overlays */
+.chips{position:absolute;left:8px;right:56px;top:10px;display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;pointer-events:none}
+.chips .chip{pointer-events:auto}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 8px;border-radius:999px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-size:13px;font-weight:500;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.chip[aria-pressed="false"]{opacity:.55;background:var(--bg)}
+.chip[aria-pressed="false"] svg{filter:grayscale(1)}
+.chip b{font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted)}
+.chip svg{width:16px;height:16px}
+.ctrls{position:absolute;right:8px;bottom:30px;display:flex;flex-direction:column;gap:6px}
+.cbtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--panel);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.cbtn:hover{border-color:var(--accent)}
+.cbtn svg{width:20px;height:20px;stroke:var(--ink);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.attr{position:absolute;left:8px;bottom:4px;font-size:11px;color:var(--muted);pointer-events:none;max-width:70%}
+.hint{position:absolute;left:50%;top:52px;transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);padding:7px 14px;border-radius:999px;font-weight:600;font-size:13.5px;box-shadow:0 2px 8px rgba(0,0,0,.25);pointer-events:none;max-width:92%;text-align:center}
+
+/* Address popup, address box, dialog */
+.leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.25)}
+.leaflet-popup-tip{background:var(--panel)}
+.leaflet-popup-content{margin:12px 14px;font:400 14px/1.45 "Public Sans",system-ui,sans-serif}
+.leaflet-container a.leaflet-popup-close-button{color:var(--muted)}
+.pop b{display:block;font-size:15px;line-height:1.3;margin-bottom:2px;overflow-wrap:anywhere}
+.pop small{display:block;color:var(--muted);margin-bottom:10px;font-size:12.5px}
+.pop .btn{width:100%;padding:8px 12px;font-size:13.5px}
+.addrbox{padding:8px 10px;border-radius:8px;border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.addrbox .k{font-size:12.5px;color:var(--muted);font-weight:600}
+.addrbox .v{font-weight:600;overflow-wrap:anywhere}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);max-width:min(440px,92vw);width:100%;padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+
+/* Sidebar */
+.tabs{position:sticky;top:0;z-index:2;display:flex;background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs button{flex:1;padding:12px 8px;border:0;background:none;cursor:pointer;font-weight:600;border-bottom:3px solid transparent;color:var(--muted)}
+.tabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs span{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:500}
+.pad{padding:14px 16px 28px}
+.banner{margin:12px 16px 0;padding:10px 12px;border-radius:8px;border:1px solid var(--s-korib);color:var(--ink);background:color-mix(in srgb,var(--s-korib) 12%,transparent);font-size:13.5px}
+.summary{margin:0 0 10px;color:var(--muted);font-size:13.5px}
+.filters{display:grid;gap:8px;margin-bottom:12px}
+.inp,select,textarea{width:100%;border:1px solid var(--line);background:var(--input);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:96px}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.item{width:100%;text-align:left;display:grid;grid-template-columns:30px 1fr;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--input);cursor:pointer}
+.item:hover{border-color:var(--accent)}
+.item.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.item .ic svg{width:28px;height:28px}
+.it-title{display:block;font-weight:600}
+.it-line{display:block;font-size:13.5px;color:var(--muted)}
+.it-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:4px;font-size:12.5px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 45%,transparent)}
+.badge.urgent{--c:var(--danger)}
+.empty{text-align:left;padding:18px 4px}
+.empty h3{font-size:18px;margin-bottom:6px}
+.empty p{margin:0 0 12px;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--input);cursor:pointer;font-weight:600}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.block{width:100%}
+a.btn{text-decoration:none;color:var(--ink)}
+a.btn.primary{color:var(--accent-ink)}
+.btn.sm{padding:5px 11px;font-size:13px;border-radius:7px}
+.pill.admin{color:var(--accent);border-color:var(--accent)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.more{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+/* Form */
+form fieldset{border:0;margin:0 0 18px;padding:0;min-width:0}
+legend,.lab{font-weight:600;font-size:15px;padding:0;margin-bottom:6px;display:block}
+.help{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.fld{margin-bottom:12px}
+.err{color:var(--danger);font-size:13.5px;margin:4px 0 0;min-height:0}
+.err:empty{display:none}
+.locbox{display:grid;gap:8px}
+.locstat{font-size:14px;padding:8px 10px;border-radius:8px;border:1px dashed var(--line)}
+.locstat.ok{border-style:solid;border-color:var(--accent)}
+.nearby{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:13.5px}
+.nearby button{width:100%;text-align:left;background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+.tcards{display:grid;gap:8px}
+.tcard{position:relative;display:block}
+.tcard input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.tc-body{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--input)}
+.tc-body b{display:block}
+.tc-body small{display:block;color:var(--muted);font-size:13px}
+.tc-body svg{width:26px;height:26px}
+.tcard input:checked + .tc-body{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.tcard input:focus-visible + .tc-body{outline:3px solid var(--focus);outline-offset:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.two{grid-template-columns:1fr}}
+.cnt{font-size:12.5px;color:var(--muted);text-align:right;margin-top:2px}
+.photo-prev{margin-top:8px;display:flex;gap:10px;align-items:center}
+.photo-prev img{width:96px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+
+/* Detail */
+.back{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 0;margin-bottom:6px;cursor:pointer;color:var(--muted);font-weight:600}
+.back svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.dhead{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;margin-bottom:10px}
+.dhead svg{width:32px;height:32px}
+.dhead h2{font-size:21px}
+.code{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13.5px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 14px}
+dl{margin:0;display:grid;gap:10px}
+dl div{display:grid;gap:2px}
+dt{font-size:12.5px;color:var(--muted);font-weight:600}
+dd{margin:0;overflow-wrap:anywhere}
+.photo{margin:14px 0 0}
+.photo img{max-width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+.reply{margin-top:18px;padding:14px;border-radius:10px;border:1px solid var(--line);background:var(--input)}
+.reply h3{font-size:16px;margin-bottom:8px}
+.reply p{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.reply.empty-r{border-style:dashed;color:var(--muted)}
+.adm{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.adm h3{font-size:16px;margin-bottom:10px}
+.done{padding:6px 0}
+.done h2{font-size:23px;margin-bottom:8px}
+.big{font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:32px;font-weight:700;letter-spacing:.02em;margin:10px 0;font-variant-numeric:tabular-nums;padding:12px 14px;border-radius:10px;border:2px solid var(--accent);display:inline-block;user-select:all}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:90vw;z-index:10;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="none" stroke="var(--ring)" stroke-width="2"/>
+    <circle cx="20" cy="20" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="20" cy="20" r="6" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity=".6"/>
+    <circle cx="20" cy="20" r="2.2" fill="var(--accent)"/>
+  </svg>
+  <div class="brand">
+    <h1>Yashil Toshkent</h1>
+    <p>Daraxt va yashil hudud muammolari xaritasi</p>
+  </div>
+  <div class="top-right">
+    <a class="btn sm primary" id="superLink" href="superadmin.html" hidden>Super admin</a>
+    <a class="btn sm primary" id="adminLink" href="admin.html" hidden>Moderator paneli</a>
+    <span class="pill" id="whoBadge" hidden></span>
+    <a class="btn sm" id="loginLink" href="login.html?next=index.html">Kirish</a>
+    <button type="button" class="btn sm" id="logoutBtn" hidden>Chiqish</button>
+    <button type="button" class="btn sm" id="tgBtn">Telegram</button>
+    <span class="pill" id="liveBadge"><i></i><span>Ulanmoqda</span></span>
+  </div>
+</header>
+
+<main>
+  <aside id="side" aria-label="Murojaatlar paneli">
+    <nav class="tabs" id="tabs">
+      <button type="button" data-go="list">Murojaatlar <span id="tabCount"></span></button>
+      <button type="button" data-go="form">Yangi murojaat</button>
+    </nav>
+
+    <section id="v-list">
+      <div id="offBanner" class="banner" hidden>Serverga ulanib boʻlmadi: roʻyxat yangilanmaydi va murojaat yuborib boʻlmaydi. Server ishga tushganini tekshiring.</div>
+      <div class="pad">
+        <p class="summary" id="summary"></p>
+        <div class="filters">
+          <label><span class="sr">Raqam boʻyicha qidirish</span>
+            <input class="inp" id="q" type="search" placeholder="Murojaat raqami boʻyicha qidirish (TD-…)" autocomplete="off"></label>
+          <label><span class="sr">Holat</span>
+            <select id="fStatus">
+              <option value="all">Barcha holatlar</option>
+              <option value="open">Hal etilmaganlar</option>
+              <option value="yangi">Yangi</option>
+              <option value="korib">Koʻrib chiqilmoqda</option>
+              <option value="hal">Hal qilindi</option>
+              <option value="rad">Rad etildi</option>
+            </select></label>
+          <label class="chk"><input type="checkbox" id="fMine"> Faqat mening murojaatlarim</label>
+        </div>
+        <ul class="list" id="list"></ul>
+        <p class="more" id="more" hidden></p>
+        <div class="empty" id="empty" hidden>
+          <h3 id="emptyTitle"></h3>
+          <p id="emptyText"></p>
+          <button type="button" class="btn primary" id="emptyBtn"></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="v-form" hidden>
+      <div class="pad">
+        <h2 style="margin-bottom:4px">Yangi murojaat</h2>
+        <p class="help" style="margin-bottom:14px">Daraxt yoki yashil hududdagi muammoni xaritada belgilab yuboring. Maydonlar * bilan belgilangan.</p>
+        <form id="f" novalidate>
+          <fieldset>
+            <legend>1. Joylashuv *</legend>
+            <p class="help">Daraxt yonida boʻlsangiz, qurilma joylashuvini aniqlang. Boshqa joyda boʻlsangiz, xaritada nuqtani bosing.</p>
+            <div class="locbox">
+              <div class="row">
+                <button type="button" class="btn" id="btnLocate">Joylashuvimni aniqlash</button>
+                <button type="button" class="btn" id="btnPlace">Xaritadan belgilash</button>
+              </div>
+              <div class="locstat" id="locText" aria-live="polite">Joylashuv hali belgilanmagan.</div>
+              <div class="addrbox" id="addrBox" hidden aria-live="polite"><div class="k">Aniqlangan manzil</div><div class="v" id="addrVal"></div></div>
+              <p class="err" id="e-loc" role="alert"></p>
+              <div id="nearbyBox" hidden>
+                <p class="help" style="margin:4px 0">Shu joyda 150 m ichida allaqachon yuborilgan murojaatlar bor. Takrorlamaslik uchun koʻrib chiqing:</p>
+                <ul class="nearby" id="nearby"></ul>
+              </div>
+            </div>
+            <div class="two" style="margin-top:10px">
+              <div class="fld">
+                <label class="lab" for="district">Tuman *</label>
+                <select id="district"></select>
+                <p class="err" id="e-district" role="alert"></p>
+              </div>
+              <div class="fld">
+                <label class="lab" for="landmark">Moʻljal</label>
+                <input class="inp" id="landmark" maxlength="100" placeholder="Masalan: 5-maktab roʻparasi" autocomplete="off">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>2. Muammo turi *</legend>
+            <div class="tcards" id="typeCards"></div>
+            <p class="err" id="e-type" role="alert"></p>
+          </fieldset>
+
+          <fieldset id="treeFields">
+            <legend>3. Daraxt haqida *</legend>
+            <div class="two">
+              <div class="fld">
+                <label class="lab" for="species">Daraxt turi</label>
+                <select id="species"></select>
+                <p class="err" id="e-species" role="alert"></p>
+              </div>
+              <div class="fld">
+                <label class="lab" for="count" id="countLab">Daraxtlar soni</label>
+                <select id="count"></select>
+                <p class="err" id="e-count" role="alert"></p>
+              </div>
+            </div>
+            <div class="fld" id="otherWrap" hidden>
+              <label class="lab" for="speciesOther">Daraxt nomi</label>
+              <input class="inp" id="speciesOther" maxlength="40" autocomplete="off">
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend id="legDetails">3. Tafsilotlar</legend>
+            <label class="chk" style="align-items:flex-start"><input type="checkbox" id="danger" style="margin-top:3px"> <span>Odamlar, avtomobil yoki bino uchun xavf bor<br><small class="help">Murojaat «Shoshilinch» deb belgilanadi.</small></span></label>
+            <label class="chk" id="activeWrap" style="align-items:flex-start;margin-top:8px" hidden><input type="checkbox" id="active" style="margin-top:3px"> <span>Kesish hozir davom etmoqda<br><small class="help">Murojaat «Shoshilinch» deb belgilanadi.</small></span></label>
+            <div class="fld" style="margin-top:12px">
+              <label class="lab" for="desc">Nima koʻrdingiz? *</label>
+              <textarea id="desc" maxlength="600" placeholder="Muammoni qisqa va aniq yozing: nima, qayerda, qachondan beri."></textarea>
+              <div class="cnt"><span id="descCnt">0</span>/600</div>
+              <p class="err" id="e-desc" role="alert"></p>
+            </div>
+            <div class="fld">
+              <label class="lab" for="photo">Rasm</label>
+              <input id="photo" type="file" accept="image/*">
+              <div class="photo-prev" id="photoPrev" hidden>
+                <img id="photoImg" alt="Tanlangan rasm">
+                <button type="button" class="btn" id="photoDel">Rasmni olib tashlash</button>
+              </div>
+              <p class="err" id="e-photo" role="alert"></p>
+            </div>
+            <div class="fld">
+              <label class="lab" for="uname">Ismingiz</label>
+              <input class="inp" id="uname" maxlength="40" autocomplete="off">
+              <p class="help">Ism barcha koʻruvchilarga koʻrinadi. Telefon raqam soʻralmaydi.</p>
+              <p class="help" id="loginHint" hidden><a href="login.html?next=index.html">Hisobga kiring</a>: murojaatlaringiz hisobingizga bogʻlanadi va ism avtomatik toʻldiriladi.</p>
+            </div>
+          </fieldset>
+          <p class="err" id="e-form" role="alert"></p>
+          <button type="submit" class="btn primary block" id="btnSubmit">Murojaatni yuborish</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="v-detail" hidden><div class="pad" id="detailBox"></div></section>
+    <section id="v-done" hidden><div class="pad done" id="doneBox"></div></section>
+  </aside>
+
+  <div id="mapwrap">
+    <div id="cv" role="application" aria-label="Toshkent xaritasi (OpenStreetMap). Murojaatlar roʻyxati yon panelda."></div>
+    <div class="chips" id="chips" aria-label="Muammo turlari filtri"></div>
+    <div class="hint" id="mapHint" hidden>Xaritada daraxt turgan joyni bosing</div>
+    <div class="ctrls">
+      <button type="button" class="cbtn" id="zIn" aria-label="Kattalashtirish"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button type="button" class="cbtn" id="zOut" aria-label="Kichraytirish"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+      <button type="button" class="cbtn" id="zFit" aria-label="Butun Toshkentni koʻrsatish"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button type="button" class="cbtn" id="zMe" aria-label="Mening joylashuvim"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+    </div>
+  </div>
+</main>
+<dialog id="tgDlg" aria-labelledby="tgTitle">
+  <h3 id="tgTitle" style="font-size:19px;margin-bottom:8px">Telegram bot</h3>
+  <p class="help" id="tgInfo" style="font-size:14px"></p>
+  <div class="row" style="margin:10px 0"><a class="btn primary" id="tgOpenBot" target="_blank" rel="noopener" href="#" hidden>Botni ochish</a></div>
+  <div id="tgLinkBox" hidden style="border-top:1px solid var(--line);padding-top:12px">
+    <p class="help" id="tgLinkInfo"></p>
+    <div class="row"><button type="button" class="btn" id="tgMake">Hisobni ulash</button><button type="button" class="btn danger" id="tgUnlink" hidden>Ulanishni uzish</button></div>
+    <div id="tgCodeBox" hidden style="margin-top:12px">
+      <p class="help">Quyidagi tugmani bosing yoki kodni botga yuboring (10 daqiqa amal qiladi):</p>
+      <div class="big" id="tgCode" style="font-size:22px"></div>
+      <div class="row"><a class="btn primary" id="tgDeep" target="_blank" rel="noopener" href="#">Botda ulash</a></div>
+    </div>
+  </div>
+  <p class="err" id="tgErr" role="alert"></p>
+  <div class="row" style="justify-content:flex-end;margin-top:12px"><button type="button" class="btn" id="tgClose">Yopish</button></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="auth.js"></script>
+<script>
+(() => {
+"use strict";
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ls = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k, v){ try { localStorage.setItem(k, v); } catch(e){} }
+};
+const MONTHS = ["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"];
+function fmtDate(ts){
+  const d = new Date(ts);
+  if (!isFinite(d.getTime())) return "";
+  const p = n => String(n).padStart(2, "0");
+  return d.getDate() + "-" + MONTHS[d.getMonth()] + ", " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+function haversine(a, b, c, d){
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (c - a) * r, dLon = (d - b) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+
+/* ---------- reference data ---------- */
+const TYPES = {
+  chirigan: { label: "Chirigan daraxt",        short: "Chirigan",   shape: "circle",   hint: "Tanasi yoki ildizi chirigan, kovak, zamburugʻ" },
+  zarar:    { label: "Zarar yetgan daraxt",    short: "Zarar",      shape: "triangle", hint: "Sinib tushgan shox, qiyshayish, mexanik shikast" },
+  qurigan:  { label: "Qurigan daraxt",         short: "Qurigan",    shape: "diamond",  hint: "Bargsiz, shoxlari quruq, hayot belgisi yoʻq" },
+  kesish:   { label: "Noqonuniy kesish",       short: "Kesish",     shape: "square",   hint: "Ruxsatsiz kesilgan yoki kesilayotgan daraxt" },
+  yashil:   { label: "Yashil hudud muammosi",  short: "Yashil hudud", shape: "hex",    hint: "Maysazor yoki bogʻ buzilgan, chiqindi, toʻsib qoʻyilgan" }
+};
+const STATUS = {
+  yangi: { label: "Yangi",              v: "--s-yangi" },
+  korib: { label: "Koʻrib chiqilmoqda", v: "--s-korib" },
+  hal:   { label: "Hal qilindi",        v: "--s-hal" },
+  rad:   { label: "Rad etildi",         v: "--s-rad" }
+};
+const SPECIES = ["Chinor","Tol","Terak","Qayragʻoch","Sofora","Tut","Akatsiya","Yongʻoq","Archa","Qaragʻay","Shumtol","Jiyda","Oʻrik","Olma","Kashtan","Magnoliya"];
+const DISTRICTS = ["Bektemir","Chilonzor","Mirobod","Mirzo Ulugʻbek","Olmazor","Sergeli","Shayxontohur","Uchtepa","Yakkasaroy","Yangihayot","Yashnobod","Yunusobod"];
+const COUNTS = [["1","1 dona"],["2-5","2–5 dona"],["6-20","6–20 dona"],["20+","20 dan ortiq"]];
+const LANDMARKS = [
+  { n: "Amir Temur xiyoboni", lat: 41.3111, lon: 69.2797 },
+  { n: "Choʻrsu bozori",      lat: 41.3265, lon: 69.2350 },
+  { n: "Teleminora",          lat: 41.3440, lon: 69.2856 },
+  { n: "Botanika bogʻi",      lat: 41.3465, lon: 69.3170 },
+  { n: "Aeroport",            lat: 41.2579, lon: 69.2812 }
+];
+const CENTER = { lat: 41.3111, lon: 69.2797 };
+const COS = Math.cos(41.31 * Math.PI / 180);
+const PLACE = { s: 41.19, n: 41.44, w: 69.09, e: 69.42 };
+const PAN = { s: 41.15, n: 41.48, w: 69.04, e: 69.48 };
+const inPlace = (la, lo) => la >= PLACE.s && la <= PLACE.n && lo >= PLACE.w && lo <= PLACE.e;
+
+function shapeSVG(shape, key, size){
+  const f = 'style="fill:var(--t-' + key + ')" stroke="var(--panel)" stroke-width="1.5"';
+  let g;
+  if (shape === "circle") g = '<circle cx="12" cy="12" r="8.5" ' + f + '/>';
+  else if (shape === "triangle") g = '<polygon points="12,2.8 22,20.5 2,20.5" ' + f + ' stroke-linejoin="round"/>';
+  else if (shape === "diamond") g = '<polygon points="12,1.8 21.5,12 12,22.2 2.5,12" ' + f + ' stroke-linejoin="round"/>';
+  else if (shape === "square") g = '<rect x="3.5" y="3.5" width="17" height="17" rx="2" ' + f + '/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>';
+  else g = '<polygon points="12,2.2 20.6,7.1 20.6,16.9 12,21.8 3.4,16.9 3.4,7.1" ' + f + ' stroke-linejoin="round"/>';
+  return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" aria-hidden="true">' + g + '</svg>';
+}
+
+/* ---------- state ---------- */
+const S = {
+  reports: new Map(), responses: new Map(),
+  ready: false, live: false, isAdmin: false, isSuper: false, myId: null, version: -1, districtAuto: false, cfg: null,
+  me: null, hashDone: false,
+  enabled: new Set(Object.keys(TYPES)), statusFilter: "all", onlyMine: false, q: "",
+  view: "list", selected: null, draft: null, you: null, formType: null, photoData: null,
+  submitting: false, detailSig: "", myCodes: new Set(), delArmed: false
+};
+try { JSON.parse(ls.get("td:mine") || "[]").forEach(c => S.myCodes.add(String(c))); } catch(e){}
+
+const statusOf = code => { const r = S.responses.get(code); return r && STATUS[r.status] ? r.status : "yangi"; };
+const isMine = r => !!r.mine || S.myCodes.has(r.code);
+const isUrgent = r => !!(r.danger || r.active);
+const typeOf = r => TYPES[r.type] ? r.type : "zarar";
+
+function visibleReports(){
+  const q = S.q.trim().toUpperCase();
+  return Array.from(S.reports.values()).filter(r => {
+    if (!r || !isFinite(r.lat) || !isFinite(r.lon)) return false;
+    if (!S.enabled.has(typeOf(r))) return false;
+    const st = statusOf(r.code);
+    if (S.statusFilter === "open") { if (st === "hal" || st === "rad") return false; }
+    else if (S.statusFilter !== "all" && st !== S.statusFilter) return false;
+    if (S.onlyMine && !isMine(r)) return false;
+    if (q && String(r.code).toUpperCase().indexOf(q) === -1) return false;
+    return true;
+  }).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+/* ---------- toast ---------- */
+let toastT = 0;
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { t.hidden = true; }, 4200);
+}
+
+/* ---------- map (Leaflet + OpenStreetMap) ---------- */
+const CITY = [[41.20, 69.12], [41.43, 69.40]];
+let LM = null, syncRaf = 0, draftMarker = null, youLayers = [];
+const pinLayer = typeof L !== "undefined" ? L.layerGroup() : null;
+if (typeof L !== "undefined") {
+  LM = L.map("cv", { zoomControl: false, minZoom: 10, maxZoom: 19, maxBounds: [[41.02, 68.85], [41.62, 69.70]], maxBoundsViscosity: 0.8 }).fitBounds(CITY);
+  // OpenStreetMap's own server rejects pages opened from disk (file://) because no Referer is sent (HTTP 403).
+  // From disk we use CARTO's OSM-based tiles; on a real http(s) address we use OpenStreetMap directly.
+  const fromDisk = location.protocol === "file:" || location.origin === "null";
+  const osmAttr = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors';
+  if (fromDisk) {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+      maxZoom: 19, subdomains: "abcd",
+      attribution: osmAttr + ' &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'
+    }).addTo(LM);
+  } else {
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: osmAttr }).addTo(LM);
+  }
+  pinLayer.addTo(LM);
+  LM.on("click", e => onMapTap(e.latlng));
+} else {
+  $("#cv").innerHTML = '<p style="padding:16px">Xarita kutubxonasi yuklanmadi. Internet aloqasini tekshirib, sahifani qayta oching.</p>';
+}
+function dirty(){ if (LM && !syncRaf) syncRaf = requestAnimationFrame(syncMap); }
+function flyTo(lat, lon, z){
+  if (!LM) return;
+  const zoom = Math.max(LM.getZoom(), z || 0);
+  const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) LM.setView([lat, lon], zoom); else LM.flyTo([lat, lon], zoom, { duration: 0.6 });
+}
+function pinIcon(key, cls, done){
+  return L.divIcon({ className: "pin " + cls, html: shapeSVG(TYPES[key].shape, key, 28) + (done ? '<i class="tick">✓</i>' : ""), iconSize: [30, 30], iconAnchor: [15, 15] });
+}
+function syncMap(){
+  syncRaf = 0;
+  if (!LM) return;
+  pinLayer.clearLayers();
+  visibleReports().forEach(r => {
+    const k = typeOf(r), st = statusOf(r.code), done = st === "hal" || st === "rad";
+    const cls = [r.code === S.selected ? "sel" : "", isUrgent(r) && !done ? "urg" : "", done ? "fade" : ""].join(" ");
+    const m = L.marker([r.lat, r.lon], {
+      icon: pinIcon(k, cls, st === "hal"),
+      title: TYPES[k].label + (r.district ? ", " + r.district : ""),
+      zIndexOffset: r.code === S.selected ? 1000 : (isUrgent(r) && !done ? 500 : 0)
+    });
+    m.on("click", () => select(r.code, false));
+    m.addTo(pinLayer);
+  });
+  youLayers.forEach(l => l.remove()); youLayers = [];
+  if (S.you && inPlace(S.you.lat, S.you.lon)) {
+    if (S.you.acc) youLayers.push(L.circle([S.you.lat, S.you.lon], { radius: S.you.acc, color: "#1F6FEB", weight: 1, fillOpacity: .14, interactive: false }).addTo(LM));
+    youLayers.push(L.circleMarker([S.you.lat, S.you.lon], { radius: 7, color: "#fff", weight: 2.5, fillColor: "#1F6FEB", fillOpacity: 1, interactive: false }).addTo(LM));
+  }
+  if (draftMarker) { draftMarker.remove(); draftMarker = null; }
+  if (S.draft) {
+    const icon = L.divIcon({ className: "pin draft", html: S.formType ? shapeSVG(TYPES[S.formType].shape, S.formType, 28) : '<span class="dot"></span>', iconSize: [30, 30], iconAnchor: [15, 15] });
+    draftMarker = L.marker([S.draft.lat, S.draft.lon], { icon, interactive: false, keyboard: false, zIndexOffset: 2000 }).addTo(LM);
+  }
+}
+$("#zIn").addEventListener("click", () => LM && LM.zoomIn());
+$("#zOut").addEventListener("click", () => LM && LM.zoomOut());
+$("#zFit").addEventListener("click", () => LM && LM.fitBounds(CITY));
+$("#zMe").addEventListener("click", () => locate(false));
+/* ---------- full address of any tapped point (server geocoder: OpenStreetMap Nominatim) ---------- */
+const geoCache = new Map();
+async function geocode(lat, lon){
+  const key = lat.toFixed(5) + "," + lon.toFixed(5);
+  if (geoCache.has(key)) return geoCache.get(key);
+  const r = await Auth.api("/geocode?lat=" + lat.toFixed(6) + "&lon=" + lon.toFixed(6));
+  geoCache.set(key, r);
+  if (geoCache.size > 300) geoCache.delete(geoCache.keys().next().value);
+  return r;
+}
+let tapSeq = 0, popup = null, popupPt = null;
+function popupHTML(ll, r, err){
+  const coords = ll.lat.toFixed(5) + ", " + ll.lng.toFixed(5);
+  const title = r && r.address ? r.address : (err ? "Manzilni aniqlab boʻlmadi" : "Bu nuqta uchun manzil topilmadi");
+  const sub = (r && r.district && r.address && r.address.indexOf(r.district) < 0 ? r.district + " tumani · " : "") + coords;
+  return '<div class="pop"><b>' + esc(title) + '</b><small>' + esc(sub) + '</small>' +
+    (inPlace(ll.lat, ll.lng) ? '<button type="button" class="btn primary" data-pop="new">Shu joyga murojaat yuborish</button>' : '<small>Bu nuqta Toshkent hududidan tashqarida.</small>') + '</div>';
+}
+async function showAddressPopup(ll){
+  if (!LM) return;
+  const seq = ++tapSeq;
+  popupPt = { lat: ll.lat, lon: ll.lng };
+  popup = L.popup({ maxWidth: 280, autoPanPadding: [20, 60] }).setLatLng(ll)
+    .setContent('<div class="pop"><b>Manzil aniqlanmoqda…</b><small>' + esc(ll.lat.toFixed(5) + ", " + ll.lng.toFixed(5)) + '</small></div>').openOn(LM);
+  await new Promise(r => setTimeout(r, 250));          // quick successive taps: only the last one is looked up
+  if (seq !== tapSeq) return;
+  try { const r = await geocode(ll.lat, ll.lng); if (seq === tapSeq) popup.setContent(popupHTML(ll, r)); }
+  catch (e) { if (seq === tapSeq) popup.setContent(popupHTML(ll, null, e)); }
+}
+function onMapTap(ll){
+  if (S.view === "form") { LM.closePopup(); setDraft(ll.lat, ll.lng, null, "map"); return; }
+  if (S.view === "detail" || S.view === "done") { S.selected = null; go("list"); }
+  showAddressPopup(ll);
+}
+
+/* ---------- geolocation ---------- */
+function locate(forForm){
+  if (!navigator.geolocation) { toast("Bu qurilma joylashuvni aniqlay olmaydi. Xaritada nuqtani bosib belgilang."); return; }
+  const btn = $("#btnLocate");
+  if (forForm) { btn.disabled = true; btn.textContent = "Aniqlanmoqda…"; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    btn.disabled = false; btn.textContent = "Joylashuvimni aniqlash";
+    const lat = pos.coords.latitude, lon = pos.coords.longitude, acc = pos.coords.accuracy;
+    S.you = { lat, lon, acc };
+    if (!inPlace(lat, lon)) {
+      dirty();
+      toast("Qurilma joylashuvi Toshkent hududidan tashqarida. Xaritada nuqtani qoʻlda belgilang.");
+      return;
+    }
+    flyTo(lat, lon, 17);
+    if (forForm) {
+      setDraft(lat, lon, acc, "gps");
+      if (acc > 200) toast("Aniqlik past (±" + Math.round(acc) + " m). Kerak boʻlsa xaritada nuqtani aniqroq belgilang.");
+    }
+    dirty();
+  }, err => {
+    btn.disabled = false; btn.textContent = "Joylashuvimni aniqlash";
+    const m = err && err.code === 1 ? "Joylashuvga ruxsat berilmadi. Brauzer sozlamalarida ruxsat bering yoki xaritada nuqtani bosing."
+      : err && err.code === 3 ? "Aniqlash vaqti tugadi. Qayta urinib koʻring yoki xaritada nuqtani bosing."
+      : "Joylashuvni aniqlab boʻlmadi. Xaritada nuqtani bosib belgilang.";
+    toast(m);
+  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 });
+}
+
+/* ---------- views ---------- */
+function go(view){
+  S.view = view;
+  ["list", "form", "detail", "done"].forEach(v => { $("#v-" + v).hidden = v !== view; });
+  $$("#tabs button").forEach(b => {
+    const on = b.dataset.go === (view === "form" ? "form" : "list") ;
+    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
+  $("#mapHint").hidden = !(view === "form" && !S.draft);
+  $("#side").scrollTop = 0;
+  S.delArmed = false;
+  if (view === "list") renderList();
+  if (view === "detail") { S.detailSig = ""; renderDetail(); }
+  dirty();
+}
+function select(code, fly){
+  const r = S.reports.get(code);
+  if (!r) return;
+  S.selected = code;
+  go("detail");
+  if (fly !== false) flyTo(r.lat, r.lon, 16);
+}
+
+function renderChips(){
+  const counts = {};
+  S.reports.forEach(r => { const k = typeOf(r); counts[k] = (counts[k] || 0) + 1; });
+  $("#chips").innerHTML = Object.entries(TYPES).map(([k, t]) =>
+    '<button type="button" class="chip" data-type="' + k + '" aria-pressed="' + S.enabled.has(k) + '">' +
+    shapeSVG(t.shape, k, 16) + '<span>' + esc(t.short) + '</span><b>' + (counts[k] || 0) + '</b></button>').join("");
+}
+function itemHTML(r){
+  const k = typeOf(r), t = TYPES[k], st = statusOf(r.code), s = STATUS[st];
+  const line = k === "yashil" ? "" : [r.species, r.count ? (COUNTS.find(c => c[0] === r.count) || [0, r.count])[1] : ""].filter(Boolean).join(", ");
+  return '<li><button type="button" class="item' + (r.code === S.selected ? " sel" : "") + '" data-code="' + esc(r.code) + '">' +
+    '<span class="ic">' + shapeSVG(t.shape, k, 28) + '</span>' +
+    '<span><span class="it-title">' + esc(t.label) + '</span>' +
+    (line ? '<span class="it-line">' + esc(line) + '</span>' : "") +
+    (r.address ? '<span class="it-line">' + esc(r.address) + '</span>' : "") +
+    '<span class="it-meta"><span>' + esc(r.district || "") + '</span><span>' + esc(fmtDate(r.createdAt)) + '</span>' +
+    '<span class="badge" style="--c:var(' + s.v + ')">' + s.label + '</span>' +
+    (isUrgent(r) && st !== "hal" && st !== "rad" ? '<span class="badge urgent">Shoshilinch</span>' : "") +
+    '</span></span></button></li>';
+}
+function renderList(){
+  const all = Array.from(S.reports.values());
+  const open = all.filter(r => { const s = statusOf(r.code); return s !== "hal" && s !== "rad"; }).length;
+  $("#summary").textContent = all.length ? ("Jami " + all.length + " ta murojaat, " + open + " tasi hal etilmagan.") : "";
+  $("#tabCount").textContent = all.length ? "(" + all.length + ")" : "";
+  const vis = visibleReports(), LIMIT = 200;
+  $("#list").innerHTML = vis.slice(0, LIMIT).map(itemHTML).join("");
+  const more = $("#more");
+  if (vis.length > LIMIT) { more.hidden = false; more.textContent = "Roʻyxatda dastlabki " + LIMIT + " ta murojaat koʻrsatildi. Qolganlarini xaritadan yoki raqam boʻyicha qidirib toping."; }
+  else more.hidden = true;
+  const empty = $("#empty");
+  if (!vis.length) {
+    empty.hidden = false;
+    if (!all.length) {
+      $("#emptyTitle").textContent = "Hozircha murojaat yoʻq";
+      $("#emptyText").textContent = "Muammoli daraxt yoki yashil hududni xaritada belgilab, birinchi murojaatni yuboring.";
+      $("#emptyBtn").textContent = "Murojaat yuborish"; $("#emptyBtn").dataset.act = "new";
+    } else {
+      $("#emptyTitle").textContent = "Murojaat topilmadi";
+      $("#emptyText").textContent = "Tanlangan filtrlarga mos murojaat yoʻq.";
+      $("#emptyBtn").textContent = "Filtrlarni tozalash"; $("#emptyBtn").dataset.act = "clear";
+    }
+  } else empty.hidden = true;
+}
+function row(l, v){ return '<div><dt>' + l + '</dt><dd>' + v + '</dd></div>'; }
+function renderDetail(){
+  const r = S.reports.get(S.selected);
+  const box = $("#detailBox");
+  if (!r) { box.innerHTML = '<button type="button" class="back" data-act="back">Roʻyxatga qaytish</button><p>Bu murojaat topilmadi. U oʻchirilgan boʻlishi mumkin.</p>'; return; }
+  const resp = S.responses.get(r.code) || null;
+  const sig = JSON.stringify([r, resp, S.isAdmin]);
+  if (sig === S.detailSig) return;
+  S.detailSig = sig;
+  const k = typeOf(r), t = TYPES[k], st = statusOf(r.code), s = STATUS[st];
+  const countLab = (COUNTS.find(c => c[0] === r.count) || [0, r.count || ""])[1];
+  let h = '<button type="button" class="back" data-act="back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Roʻyxatga qaytish</button>' +
+    '<div class="dhead">' + shapeSVG(t.shape, k, 32) + '<div><h2>' + esc(t.label) + '</h2><div class="code">Murojaat raqami: ' + esc(r.code) + '</div></div></div>' +
+    '<div class="badges"><span class="badge" style="--c:var(' + s.v + ')">' + s.label + '</span>' +
+    (isUrgent(r) && st !== "hal" && st !== "rad" ? '<span class="badge urgent">Shoshilinch</span>' : "") + '</div><dl>';
+  if (k !== "yashil") {
+    h += row("Daraxt turi", esc(r.species || "Koʻrsatilmagan"));
+    h += row(k === "kesish" ? "Kesilgan daraxtlar soni" : "Daraxtlar soni", esc(countLab || "Koʻrsatilmagan"));
+  }
+  if (r.address) h += row("Manzil", esc(r.address));
+  h += row("Tuman", esc(r.district || "Koʻrsatilmagan"));
+  if (r.landmark) h += row("Moʻljal", esc(r.landmark));
+  h += row("Koordinatalar", esc(Number(r.lat).toFixed(5) + ", " + Number(r.lon).toFixed(5)) + '<br><small class="help">' +
+    (r.source === "gps" ? "Qurilma joylashuvi bilan aniqlangan" + (r.accuracy ? " (±" + esc(r.accuracy) + " m)" : "") : "Xaritadan belgilangan") + '</small>');
+  if (r.danger) h += row("Xavf", "Odamlar, avtomobil yoki bino uchun xavf bor");
+  if (r.active) h += row("Kesish holati", "Kesish yuborilgan vaqtda davom etayotgan edi");
+  h += row("Tavsif", '<span style="white-space:pre-wrap">' + esc(r.description || "") + '</span>');
+  h += row("Yuborildi", esc(fmtDate(r.createdAt)) + ", " + esc(r.name || "Fuqaro") + (r.via === "telegram" ? " · Telegram bot" : ""));
+  h += '</dl>';
+  if (r.hasPhoto) h += '<div class="photo"><img alt="Murojaatga ilova qilingan rasm" loading="lazy" src="' + esc(Auth.url("/reports/" + encodeURIComponent(r.code) + "/photo")) + '"></div>';
+  if (resp && (resp.text || resp.status)) {
+    h += '<div class="reply"><h3>Javob</h3><span class="badge" style="--c:var(' + s.v + ')">' + s.label + '</span>' +
+      (resp.org ? '<p><b>Mas’ul tashkilot:</b> ' + esc(resp.org) + '</p>' : "") +
+      (resp.text ? '<p>' + esc(resp.text) + '</p>' : "") +
+      '<p class="help">' + esc(fmtDate(resp.updatedAt)) + '</p></div>';
+  } else {
+    h += '<div class="reply empty-r"><h3>Javob</h3><p>Hali javob berilmagan. Murojaat koʻrib chiqilgach, javob shu yerda paydo boʻladi.</p></div>';
+  }
+  if (S.isAdmin) {
+    const cur = resp || {};
+    h += '<form class="adm" id="admForm" novalidate><h3>Javob berish</h3>' +
+      '<div class="fld"><label class="lab" for="admStatus">Holat</label><select id="admStatus">' +
+      Object.keys(STATUS).map(x => '<option value="' + x + '"' + ((cur.status || "korib") === x ? " selected" : "") + '>' + STATUS[x].label + '</option>').join("") +
+      '</select></div>' +
+      '<div class="fld"><label class="lab" for="admOrg">Mas’ul tashkilot</label><input class="inp" id="admOrg" maxlength="80" value="' + esc(cur.org || "") + '"></div>' +
+      '<div class="fld"><label class="lab" for="admText">Javob matni</label><textarea id="admText" maxlength="800">' + esc(cur.text || "") + '</textarea></div>' +
+      '<p class="err" id="admErr" role="alert"></p>' +
+      '<div class="row"><button type="submit" class="btn primary">Javobni saqlash</button>' +
+      '<button type="button" class="btn danger" id="admDel">Murojaatni oʻchirish</button></div></form>';
+  }
+  box.innerHTML = h;
+}
+function updateBadges(){
+  const b = $("#liveBadge");
+  b.classList.remove("live", "off");
+  if (!S.ready) b.lastElementChild.textContent = "Ulanmoqda";
+  else if (S.live) { b.classList.add("live"); b.lastElementChild.textContent = "Jonli"; }
+  else { b.classList.add("off"); b.lastElementChild.textContent = "Oflayn"; }
+  $("#offBanner").hidden = !(S.ready && !S.live);
+  const sb = $("#btnSubmit");
+  if (!S.submitting) { sb.disabled = !S.ready || !S.live; sb.textContent = !S.ready ? "Ulanmoqda…" : "Murojaatni yuborish"; }
+}
+function render(){
+  renderChips();
+  if (S.view === "list") renderList();
+  else $("#tabCount").textContent = S.reports.size ? "(" + S.reports.size + ")" : "";
+  if (S.view === "detail") renderDetail();
+  dirty();
+  openFromHash();
+}
+
+/* ---------- auth (auth.js) ---------- */
+function syncAuth(){
+  const me = window.Auth ? Auth.current() : null;
+  S.me = me;
+  S.isAdmin = !!(me && (me.role === "admin" || me.role === "superadmin"));
+  S.isSuper = !!(me && me.role === "superadmin");
+  S.myId = me ? me.id : null;
+  // moderators work from the request list (admin.html); the full map page is for citizens and super admins
+  if (me && me.role === "admin") { location.replace("admin.html"); return; }
+  const isStaff = S.isAdmin;
+  $("#loginLink").hidden = !!me;
+  $("#logoutBtn").hidden = !me;
+  $("#adminLink").hidden = !isStaff;
+  $("#superLink").hidden = !S.isSuper;
+  const w = $("#whoBadge");
+  w.hidden = !me;
+  if (me) { w.textContent = me.name + (S.isSuper ? " · super admin" : isStaff ? " · moderator" : ""); w.classList.toggle("admin", isStaff); }
+  $("#loginHint").hidden = !!me;
+  prefillName();
+  if (S.view === "detail") { S.detailSig = ""; renderDetail(); }
+  if (S.view === "list") renderList();
+  dirty();
+}
+function prefillName(){
+  const u = $("#uname");
+  if (S.me && u && !u.value.trim()) u.value = S.me.name;
+}
+/* admin.html dagi «Asosiy xaritada ochish» havolasi: index.html#TD-XXXXXX */
+function openFromHash(){
+  if (S.hashDone || !S.ready) return;
+  let code = "";
+  try { code = decodeURIComponent(location.hash.slice(1)); } catch (e) {}
+  if (!/^TD-[A-Z0-9]{4,10}$/.test(code)) { S.hashDone = true; return; }
+  if (S.reports.has(code)) { S.hashDone = true; select(code, true); }
+  else if (S.live) { S.hashDone = true; toast("Murojaat " + code + " topilmadi. U oʻchirilgan boʻlishi mumkin."); }
+}
+
+/* ---------- form ---------- */
+function buildForm(){
+  $("#typeCards").innerHTML = Object.entries(TYPES).map(([k, t]) =>
+    '<label class="tcard"><input type="radio" name="type" value="' + k + '"><span class="tc-body"><span>' + shapeSVG(t.shape, k, 26) +
+    '</span><span><b>' + esc(t.label) + '</b><small>' + esc(t.hint) + '</small></span></span></label>').join("");
+  $("#species").innerHTML = '<option value="">Tanlang</option>' + SPECIES.map(s => '<option value="' + esc(s) + '">' + esc(s) + '</option>').join("") +
+    '<option value="__other">Boshqa</option><option value="__unknown">Nomaʼlum (aniqlay olmadim)</option>';
+  $("#count").innerHTML = '<option value="">Tanlang</option>' + COUNTS.map(c => '<option value="' + c[0] + '">' + c[1] + '</option>').join("");
+  $("#district").innerHTML = '<option value="">Tanlang</option>' + DISTRICTS.map(d => '<option value="' + esc(d) + '">' + esc(d) + '</option>').join("");
+}
+function applyType(k){
+  S.formType = k;
+  const tree = k !== "yashil";
+  $("#treeFields").hidden = !tree;
+  $("#countLab").textContent = k === "kesish" ? "Kesilgan daraxtlar soni" : "Daraxtlar soni";
+  $("#activeWrap").hidden = k !== "kesish";
+  if (k !== "kesish") $("#active").checked = false;
+  $("#legDetails").textContent = tree ? "4. Tafsilotlar" : "3. Tafsilotlar";
+  dirty();
+}
+let addrSeq = 0;
+async function lookupAddress(){
+  const d = S.draft; if (!d) return;
+  const seq = ++addrSeq;
+  d.address = "";
+  $("#addrBox").hidden = false; $("#addrVal").textContent = "Aniqlanmoqda…";
+  try {
+    const r = await geocode(d.lat, d.lon);
+    if (seq !== addrSeq || S.draft !== d) return;
+    d.address = r.address || "";
+    $("#addrVal").textContent = d.address || "Manzil aniqlanmadi. Tuman va moʻljalni oʻzingiz kiriting.";
+    if (r.district && (!$("#district").value || S.districtAuto)) { $("#district").value = r.district; S.districtAuto = true; $("#e-district").textContent = ""; }
+  } catch (e) {
+    if (seq !== addrSeq || S.draft !== d) return;
+    $("#addrVal").textContent = "Manzilni aniqlab boʻlmadi. Tuman va moʻljalni oʻzingiz kiriting.";
+  }
+}
+function setDraft(lat, lon, acc, source){
+  if (!inPlace(lat, lon)) { toast("Bu nuqta Toshkent hududidan tashqarida. Shahar ichidagi joyni belgilang."); return; }
+  S.draft = { lat, lon, acc: acc || null, source };
+  $("#mapHint").hidden = true;
+  const ls2 = $("#locText");
+  ls2.classList.add("ok");
+  ls2.textContent = "Belgilandi: " + lat.toFixed(5) + ", " + lon.toFixed(5) + (acc ? " (aniqlik ±" + Math.round(acc) + " m)" : " (xaritadan)");
+  $("#e-loc").textContent = "";
+  lookupAddress();
+  const near = Array.from(S.reports.values()).filter(r => isFinite(r.lat) && isFinite(r.lon))
+    .map(r => ({ r, d: haversine(lat, lon, r.lat, r.lon) })).filter(x => x.d <= 150).sort((a, b) => a.d - b.d).slice(0, 4);
+  $("#nearbyBox").hidden = !near.length;
+  $("#nearby").innerHTML = near.map(x => '<li><button type="button" data-code="' + esc(x.r.code) + '">' + esc(TYPES[typeOf(x.r)].label) + ", " + Math.round(x.d) + " m uzoqlikda, " + esc(STATUS[statusOf(x.r.code)].label.toLowerCase()) + '</button></li>').join("");
+  dirty();
+}
+function resetForm(){
+  $("#f").reset();
+  S.draft = null; S.formType = null; S.photoData = null;
+  $("#photoPrev").hidden = true; $("#otherWrap").hidden = true; $("#treeFields").hidden = false; $("#activeWrap").hidden = true;
+  $("#locText").classList.remove("ok"); $("#locText").textContent = "Joylashuv hali belgilanmagan.";
+  $("#addrBox").hidden = true; S.districtAuto = false; addrSeq++;
+  $("#nearbyBox").hidden = true; $("#descCnt").textContent = "0";
+  $("#legDetails").textContent = "4. Tafsilotlar";
+  $$(".err", $("#f")).forEach(e => { e.textContent = ""; });
+  prefillName();
+}
+function genCode(){
+  const A = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let s = "";
+  const arr = new Uint32Array(6);
+  (window.crypto || { getRandomValues: a => a.map(() => Math.floor(Math.random() * 4294967295)) }).getRandomValues(arr);
+  for (let i = 0; i < 6; i++) s += A[arr[i] % A.length];
+  return "TD-" + s;
+}
+function readImage(file){
+  return new Promise((resolve, reject) => {
+    if (!file || !/^image\//.test(file.type)) { reject(new Error("type")); return; }
+    const fr = new FileReader();
+    fr.onerror = () => reject(new Error("read"));
+    fr.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode"));
+      img.onload = () => {
+        const sizes = [960, 800, 640, 480], quals = [0.72, 0.6, 0.5];
+        for (const mx of sizes) {
+          const k = Math.min(1, mx / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.max(1, Math.round(img.width * k)); c.height = Math.max(1, Math.round(img.height * k));
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          for (const q of quals) {
+            const url = c.toDataURL("image/jpeg", q);
+            if (url.length <= 190000) { resolve(url); return; }
+          }
+        }
+        reject(new Error("size"));
+      };
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+function fail(id, msg){ $("#" + id).textContent = msg; return false; }
+function validate(){
+  $$(".err", $("#f")).forEach(e => { e.textContent = ""; });
+  const errs = [];
+  const chk = (ok, id, msg, focusId) => { if (!ok) { fail(id, msg); errs.push(focusId || id.replace("e-", "")); } };
+  chk(!!S.draft, "e-loc", "Joylashuvni belgilang: qurilma joylashuvini aniqlang yoki xaritada nuqtani bosing.", "btnLocate");
+  chk(!!$("#district").value, "e-district", "Tumanni tanlang.", "district");
+  chk(!!S.formType, "e-type", "Muammo turini tanlang.", "typeCards");
+  if (S.formType && S.formType !== "yashil") {
+    const sp = $("#species").value;
+    chk(!!sp, "e-species", "Daraxt turini tanlang.", "species");
+    if (sp === "__other") { const o = $("#speciesOther").value.trim(); chk(o.length >= 2, "e-species", "Daraxt nomini yozing.", "speciesOther"); }
+    chk(!!$("#count").value, "e-count", "Daraxtlar sonini tanlang.", "count");
+  }
+  chk($("#desc").value.trim().length >= 10, "e-desc", "Kamida 10 ta belgi yozing: nima, qayerda, qachondan beri.", "desc");
+  if (errs.length) {
+    const first = errs[0];
+    const el = first === "typeCards" ? $("#typeCards input") : $("#" + first);
+    if (el && el.focus) el.focus();
+    return false;
+  }
+  return true;
+}
+async function submitReport(ev){
+  ev.preventDefault();
+  if (S.submitting || !S.ready) return;
+  $("#e-form").textContent = "";
+  if (!validate()) return;
+  S.submitting = true;
+  const sb = $("#btnSubmit"); sb.disabled = true; sb.textContent = "Yuborilmoqda…";
+  try {
+    const type = S.formType, tree = type !== "yashil";
+    let species = null, count = null;
+    if (tree) {
+      const sp = $("#species").value;
+      species = sp === "__other" ? $("#speciesOther").value.trim() : sp === "__unknown" ? "Nomaʼlum" : sp;
+      count = $("#count").value;
+    }
+    const body = {
+      type, species, count,
+      danger: $("#danger").checked,
+      active: type === "kesish" && $("#active").checked,
+      lat: Number(S.draft.lat.toFixed(6)), lon: Number(S.draft.lon.toFixed(6)),
+      accuracy: S.draft.acc ? Math.round(S.draft.acc) : null, source: S.draft.source,
+      district: $("#district").value, landmark: $("#landmark").value.trim(), address: S.draft.address || "",
+      description: $("#desc").value.trim(), name: $("#uname").value.trim(), photo: S.photoData || null
+    };
+    const res = await Auth.api("/reports", { method: "POST", body });
+    const rep = res.report;
+    S.reports.set(rep.code, rep);
+    S.myCodes.add(rep.code); ls.set("td:mine", JSON.stringify(Array.from(S.myCodes).slice(-200)));
+    resetForm();
+    S.selected = rep.code;
+    showDone(rep, !body.photo || rep.hasPhoto);
+    flyTo(rep.lat, rep.lon, 16);
+    render();
+  } catch (e) {
+    fail("e-form", e && e.message ? e.message : "Murojaat yuborilmadi. Internet aloqasini tekshirib, qayta urinib koʻring.");
+  } finally {
+    S.submitting = false; updateBadges();
+  }
+}
+function showDone(rep, photoOk){
+  $("#doneBox").innerHTML = '<h2>Murojaat yuborildi</h2>' +
+    '<p>Raqamni saqlab qoʻying. Javobni «Murojaatlar» boʻlimida shu raqam bilan topasiz.</p>' +
+    '<div class="big">' + esc(rep.code) + '</div>' +
+    (photoOk ? "" : '<p class="err" style="display:block">Rasm yuklanmadi, murojaat rasmsiz yuborildi.</p>') +
+    '<div class="row"><button type="button" class="btn primary" data-act="open" data-code="' + esc(rep.code) + '">Murojaatni koʻrish</button>' +
+    '<button type="button" class="btn" data-act="new">Yana murojaat yuborish</button></div>';
+  go("done");
+}
+
+/* ---------- moderator actions ---------- */
+async function saveReply(ev){
+  ev.preventDefault();
+  const code = S.selected; if (!code) return;
+  const status = $("#admStatus").value, org = $("#admOrg").value.trim(), text = $("#admText").value.trim();
+  const err = $("#admErr"); err.textContent = "";
+  if ((status === "hal" || status === "rad") && text.length < 5) { err.textContent = "Javob matnini yozing (kamida 5 ta belgi)."; $("#admText").focus(); return; }
+  const btn = ev.submitter || $("#admForm button[type=submit]"); if (btn) btn.disabled = true;
+  try {
+    const r = await Auth.api("/reports/" + encodeURIComponent(code) + "/response", { method: "PUT", body: { status, org, text } });
+    S.responses.set(code, r.response); S.detailSig = ""; render();
+    toast("Javob saqlandi");
+  } catch (e) {
+    err.textContent = e && e.message ? e.message : "Javob saqlanmadi. Qayta urinib koʻring.";
+  } finally { if (btn) btn.disabled = false; }
+}
+async function deleteReport(){
+  const code = S.selected; if (!code) return;
+  const b = $("#admDel");
+  if (!S.delArmed) {
+    S.delArmed = true; b.textContent = "Oʻchirishni tasdiqlang";
+    setTimeout(() => { S.delArmed = false; const x = $("#admDel"); if (x) x.textContent = "Murojaatni oʻchirish"; }, 4000);
+    return;
+  }
+  try {
+    await Auth.api("/reports/" + encodeURIComponent(code), { method: "DELETE" });
+    S.reports.delete(code); S.responses.delete(code);
+    S.selected = null; go("list"); render(); toast("Murojaat oʻchirildi");
+  } catch (e) { $("#admErr").textContent = e && e.message ? e.message : "Oʻchirib boʻlmadi. Moderator huquqini tekshiring."; }
+}
+
+/* ---------- data layer: server API + live updates (same data the Telegram bot works with) ---------- */
+async function loadAll(){
+  try {
+    const d = await Auth.api("/reports");
+    S.reports = new Map((d.reports || []).map(r => [r.code, r]));
+    S.responses = new Map(Object.entries(d.responses || {}));
+    S.version = d.version; S.live = true;
+  } catch (e) {
+    if (S.live || !S.ready) toast(e && e.message ? e.message : "Maʼlumotlarni yangilab boʻlmadi.");
+    S.live = false;
+  }
+  updateBadges(); render();
+}
+async function initCaps(){
+  try { await Auth.init(); } catch (e) {}
+  syncAuth();
+  await loadAll();
+  S.ready = true;
+  updateBadges(); render();
+  Auth.api("/config").then(c => { S.cfg = c; }).catch(() => {});
+  Auth.subscribe(ev => {
+    if (ev.kind === "users" || ev.kind === "tg") Auth.refresh().then(syncAuth);
+    if (ev.v !== S.version) loadAll();
+  }, up => { if (!up) { S.live = false; updateBadges(); } });
+}
+
+/* ---------- Telegram dialog ---------- */
+function tgRender(){
+  const me = Auth.current(), box = $("#tgLinkBox");
+  $("#tgCodeBox").hidden = true; $("#tgErr").textContent = "";
+  if (!me) { box.hidden = true; return; }
+  box.hidden = false;
+  $("#tgLinkInfo").textContent = me.telegram
+    ? "Hisobingiz Telegramga ulangan: murojaatlaringiz ikkala joyda bir xil koʻrinadi" + (me.role !== "user" ? " va yangi murojaatlar haqida xabar olasiz." : ".")
+    : "Hisobingizni ulang: saytdan yuborgan murojaatlaringiz botda «Mening murojaatlarim»da koʻrinadi va javob Telegramga keladi.";
+  $("#tgMake").hidden = !!me.telegram; $("#tgUnlink").hidden = !me.telegram;
+}
+async function openTg(){
+  const dlg = $("#tgDlg"), info = $("#tgInfo"), open = $("#tgOpenBot");
+  open.hidden = true; $("#tgLinkBox").hidden = true; $("#tgErr").textContent = "";
+  info.textContent = "Yuklanmoqda…";
+  if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  try { S.cfg = await Auth.api("/config"); } catch (e) { info.textContent = "Serverga ulanib boʻlmadi."; return; }
+  const bot = S.cfg && S.cfg.botUsername;
+  if (!bot) { info.textContent = "Telegram bot hozircha ulanmagan yoki ishlamayapti. Keyinroq urinib koʻring."; return; }
+  open.href = "https://t.me/" + bot; open.textContent = "@" + bot + " ni ochish"; open.hidden = false;
+  info.innerHTML = "Murojaatlarni <b>@" + esc(bot) + "</b> orqali ham yuborishingiz va kuzatishingiz mumkin. Bot saytdagi bilan bir xil maʼlumotlar bilan ishlaydi: bu yerda yuborilgan murojaat botda, botdagisi esa shu yerda koʻrinadi.";
+  tgRender();
+}
+
+/* ---------- wiring ---------- */
+buildForm();
+$("#tabs").addEventListener("click", e => {
+  const b = e.target.closest("button[data-go]"); if (!b) return;
+  if (b.dataset.go === "form") { S.selected = null; go("form"); } else go("list");
+});
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  const k = b.dataset.type;
+  if (S.enabled.has(k)) S.enabled.delete(k); else S.enabled.add(k);
+  render();
+});
+$("#q").addEventListener("input", e => { S.q = e.target.value; renderList(); dirty(); });
+$("#fStatus").addEventListener("change", e => { S.statusFilter = e.target.value; renderList(); dirty(); });
+$("#fMine").addEventListener("change", e => { S.onlyMine = e.target.checked; renderList(); dirty(); });
+$("#list").addEventListener("click", e => { const b = e.target.closest(".item"); if (b) select(b.dataset.code, true); });
+$("#emptyBtn").addEventListener("click", e => {
+  if (e.currentTarget.dataset.act === "clear") {
+    S.q = ""; S.statusFilter = "all"; S.onlyMine = false; S.enabled = new Set(Object.keys(TYPES));
+    $("#q").value = ""; $("#fStatus").value = "all"; $("#fMine").checked = false; render();
+  } else { S.selected = null; go("form"); }
+});
+$("#detailBox").addEventListener("click", e => {
+  if (e.target.closest("[data-act=back]")) { S.selected = null; go("list"); }
+  else if (e.target.closest("#admDel")) deleteReport();
+});
+$("#detailBox").addEventListener("submit", e => { if (e.target.id === "admForm") saveReply(e); });
+$("#doneBox").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  if (b.dataset.act === "open") select(b.dataset.code, true);
+  else { S.selected = null; go("form"); }
+});
+$("#nearby").addEventListener("click", e => { const b = e.target.closest("button[data-code]"); if (b) select(b.dataset.code, true); });
+$("#typeCards").addEventListener("change", e => { if (e.target.name === "type") { applyType(e.target.value); $("#e-type").textContent = ""; } });
+$("#species").addEventListener("change", e => { $("#otherWrap").hidden = e.target.value !== "__other"; $("#e-species").textContent = ""; });
+$("#btnLocate").addEventListener("click", () => locate(true));
+$("#btnPlace").addEventListener("click", () => { $("#mapHint").hidden = false; if (LM) LM.getContainer().focus({ preventScroll: true }); toast("Xaritada daraxt turgan joyni bosing."); });
+$("#desc").addEventListener("input", e => { $("#descCnt").textContent = e.target.value.length; });
+$("#photo").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; $("#e-photo").textContent = "";
+  if (!f) return;
+  try {
+    S.photoData = await readImage(f);
+    $("#photoImg").src = S.photoData; $("#photoPrev").hidden = false;
+  } catch (err) {
+    S.photoData = null; $("#photoPrev").hidden = true; e.target.value = "";
+    $("#e-photo").textContent = err && err.message === "size" ? "Rasm juda katta. Kichikroq rasm tanlang." : "Rasmni oʻqib boʻlmadi. Boshqa rasm tanlang.";
+  }
+});
+$("#photoDel").addEventListener("click", () => { S.photoData = null; $("#photo").value = ""; $("#photoPrev").hidden = true; });
+$("#f").addEventListener("submit", submitReport);
+
+if ("ResizeObserver" in window && LM) new ResizeObserver(() => LM.invalidateSize()).observe($("#mapwrap"));
+
+$("#logoutBtn").addEventListener("click", async () => { try { await Auth.logout(); } catch (e) {} syncAuth(); loadAll(); toast("Tizimdan chiqdingiz."); });
+$("#district").addEventListener("change", () => { S.districtAuto = false; });
+if (LM) LM.getContainer().addEventListener("click", e => {
+  const b = e.target.closest("[data-pop=new]"); if (!b || !popupPt) return;
+  LM.closePopup(); S.selected = null; go("form"); setDraft(popupPt.lat, popupPt.lon, null, "map");
+});
+$("#tgBtn").addEventListener("click", openTg);
+$("#tgClose").addEventListener("click", () => $("#tgDlg").close());
+$("#tgMake").addEventListener("click", async () => {
+  $("#tgErr").textContent = "";
+  try {
+    const r = await Auth.api("/auth/telegram-link", { method: "POST" });
+    if (!r.botUsername) { $("#tgErr").textContent = "Bot hozir ishlamayapti."; return; }
+    $("#tgCode").textContent = "/link " + r.code;
+    $("#tgDeep").href = "https://t.me/" + r.botUsername + "?start=link_" + r.code;
+    $("#tgCodeBox").hidden = false;
+  } catch (e) { $("#tgErr").textContent = e.message; }
+});
+$("#tgUnlink").addEventListener("click", async () => {
+  try { await Auth.api("/auth/telegram-link", { method: "DELETE" }); await Auth.refresh(); syncAuth(); tgRender(); toast("Telegram ulanishi uzildi."); }
+  catch (e) { $("#tgErr").textContent = e.message; }
+});
+
+window.addEventListener("storage", e => {
+  if (e.key === Auth.KEYS.token) Auth.refresh().then(() => { syncAuth(); loadAll(); });
+});
+
+go("list"); updateBadges(); dirty();
+initCaps();
+})();
+</script>
+</body>
+</html>

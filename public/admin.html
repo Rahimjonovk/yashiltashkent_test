@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Moderator paneli — Yashil Toshkent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>
+body{display:none}
+body.ready{display:block}
+.top{position:sticky;top:0;z-index:10}
+.tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto}
+.tabs button{padding:12px 14px;border:0;background:none;cursor:pointer;font-weight:600;border-bottom:3px solid transparent;color:var(--muted);white-space:nowrap}
+.tabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs span{font-variant-numeric:tabular-nums;font-weight:500}
+.page{padding:16px;max-width:1500px;margin:0 auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.stat{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 12px;cursor:pointer}
+.stat:hover{border-color:var(--accent)}
+.stat[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.stat b{display:block;font:700 26px/1.1 "Bricolage Grotesque",system-ui,sans-serif;font-variant-numeric:tabular-nums;color:var(--c,var(--ink))}
+.stat small{color:var(--muted);font-size:12.5px;font-weight:600}
+.tools{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(3,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+.tools2{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px;justify-content:space-between}
+.split{display:grid;grid-template-columns:minmax(0,1fr) 410px;gap:16px;align-items:start}
+.tw{border:1px solid var(--line);border-radius:10px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{position:sticky;top:0;text-align:left;font-size:12.5px;color:var(--muted);font-weight:600;padding:9px 10px;background:var(--panel);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tbody tr.sel td{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+tbody tr:hover td{background:color-mix(in srgb,var(--accent) 7%,transparent)}
+.codebtn{white-space:nowrap;border:0;background:none;padding:2px 0;cursor:pointer;font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums;text-decoration:underline;text-underline-offset:2px}
+.ti{display:flex;gap:8px;align-items:center;white-space:nowrap}
+.ti svg{width:20px;height:20px;flex:0 0 auto}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.cut{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.emptyrow{padding:26px 14px;text-align:center;color:var(--muted)}
+.panel{position:sticky;top:76px;max-height:calc(100vh - 92px);overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:16px}
+.panel h2{font-size:20px}
+.panel .ph{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;margin-bottom:10px}
+.panel .ph svg{width:30px;height:30px}
+.closebtn{border:1px solid var(--line);background:var(--input);border-radius:8px;width:34px;height:34px;cursor:pointer;font-size:18px;line-height:1}
+dl{margin:0;display:grid;gap:10px}
+dl div{display:grid;gap:2px}
+dt{font-size:12.5px;color:var(--muted);font-weight:600}
+dd{margin:0;overflow-wrap:anywhere}
+.photo img{max-width:100%;border-radius:10px;border:1px solid var(--line);display:block;margin-top:12px}
+.adm{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.adm h3{font-size:16px;margin-bottom:10px}
+.minimap{height:190px;margin:0 0 14px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--input);position:relative;z-index:0}
+.minimap .pin{width:30px;height:30px}
+.minimap .pin svg{width:28px;height:28px;margin:1px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.minimap .leaflet-control-attribution{font-size:10px}
+.minimap-off{padding:18px 12px;text-align:center;color:var(--muted);font-size:13.5px}
+.hist{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:16px;max-width:520px}
+.card h2{font-size:19px;margin-bottom:10px}
+.pls{color:var(--muted);text-align:center;padding:40px 10px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);max-width:min(420px,92vw);width:100%;padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+@media (max-width:1000px){
+  .split{grid-template-columns:minmax(0,1fr)}
+  .panel{display:none;position:fixed;inset:0;z-index:30;max-height:none;border-radius:0;border:0;padding:16px max(16px,env(safe-area-inset-right,0px)) 28px 16px}
+  .panel.open{display:block}
+  .tools{grid-template-columns:1fr 1fr}
+  .tools .wide{grid-column:1/-1}
+}
+@media (min-width:1001px){.closebtn.narrow{display:none}}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.pill.live i{background:var(--s-hal)}
+.pill.off i{background:var(--s-korib)}
+.src{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="none" stroke="var(--ring)" stroke-width="2"/>
+    <circle cx="20" cy="20" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="20" cy="20" r="6" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity=".6"/>
+    <circle cx="20" cy="20" r="2.2" fill="var(--accent)"/>
+  </svg>
+  <div class="brand"><h1>Moderator paneli</h1><p>Yashil Toshkent — murojaatlarni boshqarish</p></div>
+  <div class="top-right">
+    <span class="pill admin" id="meBadge"></span>
+    <span class="pill" id="liveBadge"><i></i><span>Ulanmoqda</span></span>
+    <a class="btn sm primary" id="superLink" href="superadmin.html" hidden>Super admin</a>
+    <a class="btn sm" id="mapLink" href="index.html" hidden>Xarita</a>
+    <button type="button" class="btn sm" id="btnOut">Chiqish</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Boʻlimlar">
+  <button type="button" data-tab="reports">Murojaatlar <span id="cReports"></span></button>
+  <button type="button" data-tab="account">Mening hisobim</button>
+</nav>
+
+<div class="page">
+  <div id="mustChange" class="banner" hidden style="margin-bottom:14px">
+    Siz standart parol bilan kirgansiz. Xavfsizlik uchun <a href="#account" data-goto="account">parolni hoziroq oʻzgartiring</a>.
+  </div>
+
+  <!-- MUROJAATLAR -->
+  <section id="s-reports">
+    <div class="stats" id="stats"></div>
+    <div class="tools">
+      <label class="wide"><span class="sr">Qidirish</span><input class="inp" id="q" type="search" placeholder="Raqam, manzil, tavsif, moʻljal yoki ism boʻyicha qidirish" autocomplete="off"></label>
+      <label><span class="sr">Muammo turi</span><select id="fType"></select></label>
+      <label><span class="sr">Tuman</span><select id="fDistrict"></select></label>
+      <label><span class="sr">Tartiblash</span>
+        <select id="fSort">
+          <option value="new">Avval yangilari</option>
+          <option value="old">Avval eskilari</option>
+          <option value="urgent">Avval shoshilinchlari</option>
+        </select></label>
+    </div>
+    <div class="tools2">
+      <span class="muted" id="count" aria-live="polite"></span>
+      <div class="row">
+        <button type="button" class="btn sm" id="btnReset">Filtrlarni tozalash</button>
+        <button type="button" class="btn sm" id="btnCsv">CSV yuklab olish</button>
+      </div>
+    </div>
+    <div class="split">
+      <div>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Raqam</th><th>Muammo</th><th>Manzil</th><th>Sana</th><th>Holat</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <p class="muted" id="more" hidden style="margin:10px 0 0"></p>
+        <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="btnMore" hidden>Yana koʻrsatish</button></div>
+      </div>
+      <aside class="panel" id="panel" aria-label="Murojaat tafsilotlari"></aside>
+    </div>
+  </section>
+
+  <!-- HISOB -->
+  <section id="s-account" hidden>
+    <div class="card">
+      <h2>Parolni oʻzgartirish</h2>
+      <p class="help" id="accInfo" style="margin-top:0"></p>
+      <form id="fPw" novalidate>
+        <div class="fld"><label class="lab" for="pwOld">Joriy parol</label><input class="inp" id="pwOld" type="password" autocomplete="current-password"></div>
+        <div class="fld"><label class="lab" for="pwNew">Yangi parol</label><input class="inp" id="pwNew" type="password" autocomplete="new-password"><p class="help">Kamida 8 ta belgi, harf va raqam bilan.</p></div>
+        <div class="fld"><label class="lab" for="pwNew2">Yangi parolni takrorlang</label><input class="inp" id="pwNew2" type="password" autocomplete="new-password"></div>
+        <p class="err" id="pwErr" role="alert"></p>
+        <button type="submit" class="btn primary">Parolni saqlash</button>
+      </form>
+    </div>
+    <div class="card" style="margin-top:14px" id="tgCard">
+      <h2>Telegram bot</h2>
+      <p class="help" id="tgInfo" style="margin-top:0">Yuklanmoqda…</p>
+      <div class="row"><a class="btn" id="tgOpenBot" target="_blank" rel="noopener" href="#" hidden>Botni ochish</a>
+        <button type="button" class="btn primary" id="tgMake" hidden>Hisobni ulash</button>
+        <button type="button" class="btn danger" id="tgUnlink" hidden>Ulanishni uzish</button></div>
+      <div id="tgCodeBox" hidden style="margin-top:12px">
+        <p class="help">Quyidagi tugmani bosing yoki kodni botga yuboring (10 daqiqa amal qiladi):</p>
+        <div style="font:700 22px/1.2 'Bricolage Grotesque',system-ui,sans-serif;padding:10px 12px;border:2px solid var(--accent);border-radius:10px;display:inline-block;user-select:all" id="tgCode"></div>
+        <div class="row" style="margin-top:10px"><a class="btn primary" id="tgDeep" target="_blank" rel="noopener" href="#">Botda ulash</a></div>
+      </div>
+      <p class="err" id="tgErr" role="alert"></p>
+    </div>
+  </section>
+</div>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="auth.js"></script>
+<script>
+(() => {
+"use strict";
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MONTHS = ["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"];
+function fmtDate(ts){
+  const d = new Date(ts); if (!isFinite(d.getTime())) return "";
+  const p = n => String(n).padStart(2, "0");
+  return d.getDate() + "-" + MONTHS[d.getMonth()] + " " + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+let toastT = 0;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200); }
+
+/* ---------- reference data (index.html bilan bir xil) ---------- */
+const TYPES = {
+  chirigan: { label: "Chirigan daraxt",       shape: "circle" },
+  zarar:    { label: "Zarar yetgan daraxt",   shape: "triangle" },
+  qurigan:  { label: "Qurigan daraxt",        shape: "diamond" },
+  kesish:   { label: "Noqonuniy kesish",      shape: "square" },
+  yashil:   { label: "Yashil hudud muammosi", shape: "hex" }
+};
+const STATUS = {
+  yangi: { label: "Yangi",              v: "--s-yangi" },
+  korib: { label: "Koʻrib chiqilmoqda", v: "--s-korib" },
+  hal:   { label: "Hal qilindi",        v: "--s-hal" },
+  rad:   { label: "Rad etildi",         v: "--s-rad" }
+};
+const COUNTS = { "1": "1 dona", "2-5": "2–5 dona", "6-20": "6–20 dona", "20+": "20 dan ortiq" };
+const DISTRICTS = ["Bektemir","Chilonzor","Mirobod","Mirzo Ulugʻbek","Olmazor","Sergeli","Shayxontohur","Uchtepa","Yakkasaroy","Yangihayot","Yashnobod","Yunusobod"];
+
+function shapeSVG(shape, key, size){
+  const f = 'style="fill:var(--t-' + key + ')" stroke="var(--panel)" stroke-width="1.5"';
+  let g;
+  if (shape === "circle") g = '<circle cx="12" cy="12" r="8.5" ' + f + '/>';
+  else if (shape === "triangle") g = '<polygon points="12,2.8 22,20.5 2,20.5" ' + f + ' stroke-linejoin="round"/>';
+  else if (shape === "diamond") g = '<polygon points="12,1.8 21.5,12 12,22.2 2.5,12" ' + f + ' stroke-linejoin="round"/>';
+  else if (shape === "square") g = '<rect x="3.5" y="3.5" width="17" height="17" rx="2" ' + f + '/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>';
+  else g = '<polygon points="12,2.2 20.6,7.1 20.6,16.9 12,21.8 3.4,16.9 3.4,7.1" ' + f + ' stroke-linejoin="round"/>';
+  return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" aria-hidden="true">' + g + '</svg>';
+}
+
+const A = {
+  me: null, tab: "reports", sel: null, limit: 50, panelSig: "", version: -1, live: false,
+  reports: new Map(), responses: new Map(),
+  fil: { q: "", status: "all", type: "all", district: "all", sort: "new" },
+  delArmed: null
+};
+const typeOf = r => TYPES[r.type] ? r.type : "zarar";
+const statusOf = code => { const x = A.responses.get(code); return x && STATUS[x.status] ? x.status : "yangi"; };
+const isUrgent = r => !!(r.danger || r.active);
+const isOpen = code => { const s = statusOf(code); return s !== "hal" && s !== "rad"; };
+
+async function load(){
+  const d = await Auth.api("/reports");
+  A.reports = new Map((d.reports || []).map(r => [r.code, r]));
+  A.responses = new Map(Object.entries(d.responses || {}));
+  A.version = d.version; A.live = true;
+}
+function guard(){
+  const me = Auth.current();
+  if (!me || !Auth.isStaff()) { location.replace("login.html?next=admin.html" + (me ? "&denied=1" : "")); return null; }
+  A.me = me; return me;
+}
+function updateBadge(){
+  const b = $("#liveBadge"); b.classList.remove("live", "off");
+  if (A.live) { b.classList.add("live"); b.lastElementChild.textContent = "Jonli"; }
+  else { b.classList.add("off"); b.lastElementChild.textContent = "Aloqa yoʻq"; }
+}
+
+function filtered(){
+  const f = A.fil, q = f.q.trim().toLowerCase();
+  const list = Array.from(A.reports.values()).filter(r => {
+    if (!isFinite(r.lat) || !isFinite(r.lon)) return false;
+    const st = statusOf(r.code);
+    if (f.status === "open") { if (st === "hal" || st === "rad") return false; }
+    else if (f.status === "urgent") { if (!isUrgent(r) || !isOpen(r.code)) return false; }
+    else if (f.status !== "all" && st !== f.status) return false;
+    if (f.type !== "all" && typeOf(r) !== f.type) return false;
+    if (f.district !== "all" && r.district !== f.district) return false;
+    if (q) {
+      const hay = [r.code, r.address, r.description, r.landmark, r.name, r.species, r.district].join(" ").toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+  list.sort((a, b) => {
+    if (f.sort === "old") return (a.createdAt || 0) - (b.createdAt || 0);
+    if (f.sort === "urgent") {
+      const ua = isUrgent(a) && isOpen(a.code) ? 1 : 0, ub = isUrgent(b) && isOpen(b.code) ? 1 : 0;
+      if (ua !== ub) return ub - ua;
+    }
+    return (b.createdAt || 0) - (a.createdAt || 0);
+  });
+  return list;
+}
+
+function renderStats(){
+  const all = Array.from(A.reports.values());
+  const c = { yangi: 0, korib: 0, hal: 0, rad: 0, urgent: 0 };
+  all.forEach(r => { c[statusOf(r.code)]++; if (isUrgent(r) && isOpen(r.code)) c.urgent++; });
+  const cards = [
+    ["all", "Jami", all.length, ""],
+    ["yangi", "Yangi", c.yangi, "var(--s-yangi)"],
+    ["korib", "Koʻrib chiqilmoqda", c.korib, "var(--s-korib)"],
+    ["hal", "Hal qilindi", c.hal, "var(--s-hal)"],
+    ["rad", "Rad etildi", c.rad, "var(--s-rad)"],
+    ["urgent", "Shoshilinch (ochiq)", c.urgent, "var(--danger)"]
+  ];
+  $("#stats").innerHTML = cards.map(x => '<button type="button" class="stat" data-st="' + x[0] + '" aria-pressed="' + (A.fil.status === x[0]) + '"' + (x[3] ? ' style="--c:' + x[3] + '"' : "") + '><b>' + x[2] + '</b><small>' + x[1] + '</small></button>').join("");
+  $("#cReports").textContent = all.length ? "(" + all.length + ")" : "";
+}
+function renderFilters(){
+  const cur = A.fil;
+  $("#fType").innerHTML = '<option value="all">Barcha turlar</option>' + Object.keys(TYPES).map(k => '<option value="' + k + '"' + (cur.type === k ? " selected" : "") + '>' + esc(TYPES[k].label) + '</option>').join("");
+  const ds = Array.from(new Set(DISTRICTS.concat(Array.from(A.reports.values()).map(r => r.district).filter(Boolean)))).sort((a, b) => a.localeCompare(b));
+  $("#fDistrict").innerHTML = '<option value="all">Barcha tumanlar</option>' + ds.map(d => '<option value="' + esc(d) + '"' + (cur.district === d ? " selected" : "") + '>' + esc(d) + '</option>').join("");
+}
+function renderTable(){
+  const vis = filtered();
+  $("#count").textContent = vis.length === A.reports.size ? vis.length + " ta murojaat" : A.reports.size + " tadan " + vis.length + " tasi koʻrsatilmoqda";
+  const shown = vis.slice(0, A.limit);
+  $("#tbody").innerHTML = shown.length ? shown.map(r => {
+    const k = typeOf(r), t = TYPES[k], st = statusOf(r.code), s = STATUS[st];
+    return '<tr style="cursor:pointer" data-row="' + esc(r.code) + '" class="' + (r.code === A.sel ? "sel" : "") + '"><td><button type="button" class="codebtn" data-code="' + esc(r.code) + '">' + esc(r.code) + '</button></td>' +
+      '<td><span class="ti">' + shapeSVG(t.shape, k, 20) + esc(t.label) + '</span></td>' +
+      '<td><div class="cut" title="' + esc(r.address || "") + '">' + esc(r.address || r.district || "—") + '</div>' + (r.via === "telegram" ? '<div class="src">Telegram</div>' : "") + '</td>' +
+      '<td class="num muted">' + esc(fmtDate(r.createdAt)) + '</td>' +
+      '<td><span class="badge" style="--c:var(' + s.v + ')">' + s.label + '</span> ' + (isUrgent(r) && isOpen(r.code) ? '<span class="badge urgent">Shoshilinch</span>' : "") + '</td></tr>';
+  }).join("") : '<tr><td colspan="5" class="emptyrow">' + (A.reports.size ? "Filtrlarga mos murojaat topilmadi." : "Hozircha murojaat yoʻq. Sayt yoki Telegram bot orqali yuborilgan murojaatlar shu yerda paydo boʻladi.") + '</td></tr>';
+  const more = vis.length > A.limit;
+  $("#btnMore").hidden = !more;
+  $("#more").hidden = !more;
+  if (more) $("#more").textContent = A.limit + " tasi koʻrsatildi, jami " + vis.length + " ta.";
+}
+function row(l, v){ return '<div><dt>' + l + '</dt><dd>' + v + '</dd></div>'; }
+function renderPanel(force){
+  const p = $("#panel");
+  const r = A.reports.get(A.sel);
+  if (!r) {
+    unmountMiniMap();
+    p.classList.remove("open");
+    A.panelSig = "";
+    p.innerHTML = '<p class="pls">Tafsilotlarni koʻrish va javob berish uchun jadvaldan murojaatni tanlang.</p>';
+    return;
+  }
+  const resp = A.responses.get(r.code) || null;
+  const sig = JSON.stringify([r, resp]);
+  if (!force && sig === A.panelSig) { p.classList.add("open"); return; }
+  A.panelSig = sig;
+  const k = typeOf(r), t = TYPES[k], st = statusOf(r.code), s = STATUS[st];
+  let h = '<div class="ph">' + shapeSVG(t.shape, k, 30) + '<div><h2>' + esc(t.label) + '</h2><div class="muted num">' + esc(r.code) + '</div></div>' +
+    '<button type="button" class="closebtn" data-act="close" aria-label="Yopish">×</button></div>' +
+    '<div class="row" style="margin-bottom:12px"><span class="badge" style="--c:var(' + s.v + ')">' + s.label + '</span>' +
+    (isUrgent(r) && isOpen(r.code) ? '<span class="badge urgent">Shoshilinch</span>' : "") + '</div>' +
+    '<div class="minimap" id="miniMap" role="img" aria-label="Murojaat joylashuvi"></div><dl>';
+  if (k !== "yashil") {
+    h += row("Daraxt turi", esc(r.species || "Koʻrsatilmagan"));
+    h += row(k === "kesish" ? "Kesilgan daraxtlar soni" : "Daraxtlar soni", esc(COUNTS[r.count] || r.count || "Koʻrsatilmagan"));
+  }
+  h += row("Manzil", esc(r.address || "Aniqlanmagan"));
+  h += row("Tuman", esc(r.district || "Koʻrsatilmagan"));
+  if (r.landmark) h += row("Moʻljal", esc(r.landmark));
+  const lat = Number(r.lat).toFixed(5), lon = Number(r.lon).toFixed(5);
+  h += row("Joylashuv", esc(lat + ", " + lon) + '<br><small class="help">' + (r.source === "gps" ? "Qurilma joylashuvi" + (r.accuracy ? " (±" + esc(r.accuracy) + " m)" : "") : r.source === "telegram" ? "Telegramdan yuborilgan joylashuv" : r.source === "search" ? "Manzil boʻyicha topilgan" : "Xaritadan belgilangan") + '</small><br>' +
+    '<a href="https://www.openstreetmap.org/?mlat=' + lat + '&amp;mlon=' + lon + '#map=18/' + lat + '/' + lon + '" target="_blank" rel="noopener">OpenStreetMap</a>');
+  if (r.danger) h += row("Xavf", "Odamlar, avtomobil yoki bino uchun xavf bor");
+  if (r.active) h += row("Kesish holati", "Yuborilgan vaqtda kesish davom etayotgan edi");
+  h += row("Tavsif", '<span style="white-space:pre-wrap">' + esc(r.description || "") + '</span>');
+  h += row("Yuborgan", esc(r.name || "Fuqaro") + (r.authorLogin ? " (" + esc(r.authorLogin) + ")" : "") + (r.tgUsername ? " · @" + esc(r.tgUsername) : "") + ", " + esc(fmtDate(r.createdAt)) + "<br><small class=\"help\">" + (r.via === "telegram" ? "Telegram bot orqali" : "Sayt orqali") + "</small>");
+  if (r.phone) h += row("Telefon", '<a href="tel:' + esc(r.phone) + '">' + esc(r.phone) + '</a>');
+  h += '</dl>';
+  if (r.hasPhoto) h += '<div class="photo"><img alt="Murojaatga ilova qilingan rasm" loading="lazy" src="' + esc(Auth.url("/reports/" + encodeURIComponent(r.code) + "/photo")) + '"></div>';
+  const cur = resp || {};
+  h += '<form class="adm" id="admForm" novalidate><h3>Javob berish</h3>' +
+    '<div class="fld"><label class="lab" for="admStatus">Holat</label><select id="admStatus">' +
+    Object.keys(STATUS).map(x => '<option value="' + x + '"' + ((cur.status || "korib") === x ? " selected" : "") + '>' + STATUS[x].label + '</option>').join("") + '</select></div>' +
+    '<div class="fld"><label class="lab" for="admOrg">Masʼul tashkilot</label><input class="inp" id="admOrg" maxlength="80" value="' + esc(cur.org || "") + '"></div>' +
+    '<div class="fld"><label class="lab" for="admText">Javob matni</label><textarea id="admText" maxlength="800">' + esc(cur.text || "") + '</textarea>' +
+    '<p class="help">«Hal qilindi» yoki «Rad etildi» uchun javob matni majburiy. Javob muallifga Telegramda ham yetkaziladi.</p></div>' +
+    '<p class="err" id="admErr" role="alert"></p>' +
+    '<div class="row"><button type="submit" class="btn primary">Javobni saqlash</button><button type="button" class="btn danger" id="admDel">Murojaatni oʻchirish</button></div>' +
+    (resp && resp.updatedAt ? '<p class="hist">Oxirgi oʻzgarish: ' + esc(fmtDate(resp.updatedAt)) + (resp.by ? ", " + esc(resp.by) : "") + '</p>' : "") + '</form>';
+  unmountMiniMap();
+  p.innerHTML = h;
+  p.classList.add("open");
+  p.scrollTop = 0;
+  mountMiniMap(r, k);
+}
+
+/* ---------- mini map: appears only inside an opened report ---------- */
+let MM = null;
+function unmountMiniMap(){ if (MM) { try { MM.remove(); } catch (e) {} MM = null; } }
+function mountMiniMap(r, key){
+  const box = $("#miniMap"); if (!box) return;
+  const lat = Number(r.lat), lon = Number(r.lon);
+  if (typeof L === "undefined" || !isFinite(lat) || !isFinite(lon)) {
+    box.innerHTML = '<div class="minimap-off">Xarita yuklanmadi. Joylashuv: ' + esc(r.lat + ", " + r.lon) + '</div>'; return;
+  }
+  MM = L.map(box, { zoomControl: true, scrollWheelZoom: false, attributionControl: true, minZoom: 10, maxZoom: 19 }).setView([lat, lon], 17);
+  // OpenStreetMap rejects pages opened from disk (file://), so use CARTO's OSM-based tiles there
+  const fromDisk = location.protocol === "file:" || location.origin === "null";
+  const osmAttr = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>';
+  if (fromDisk) L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", { maxZoom: 19, subdomains: "abcd", attribution: osmAttr + ' &copy; CARTO' }).addTo(MM);
+  else L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: osmAttr }).addTo(MM);
+  L.marker([lat, lon], { keyboard: false, icon: L.divIcon({ className: "pin", html: shapeSVG(TYPES[key].shape, key, 28), iconSize: [30, 30], iconAnchor: [15, 15] }) }).addTo(MM);
+  setTimeout(() => { if (MM) MM.invalidateSize(); }, 60);   // the panel may have just become visible (mobile full-screen)
+}
+function renderReports(){ renderStats(); renderTable(); }
+
+/* ---------- actions: reports ---------- */
+function openReport(code){ A.sel = code; A.panelSig = ""; renderTable(); renderPanel(true); }
+function closePanel(){ A.sel = null; renderTable(); renderPanel(true); }
+
+async function saveReply(ev){
+  ev.preventDefault();
+  if (!guard()) return;
+  const code = A.sel; if (!code) return;
+  const status = $("#admStatus").value, org = $("#admOrg").value.trim(), text = $("#admText").value.trim();
+  const err = $("#admErr"); err.textContent = "";
+  if (!STATUS[status]) { err.textContent = "Holatni tanlang."; return; }
+  if ((status === "hal" || status === "rad") && text.length < 5) { err.textContent = "Javob matnini yozing (kamida 5 ta belgi)."; $("#admText").focus(); return; }
+  const btn = ev.submitter || $("#admForm button[type=submit]"); if (btn) btn.disabled = true;
+  try {
+    const r = await Auth.api("/reports/" + encodeURIComponent(code) + "/response", { method: "PUT", body: { status, org, text } });
+    A.responses.set(code, r.response); A.panelSig = ""; renderReports(); renderPanel(true);
+    toast("Javob saqlandi");
+  } catch (e) { err.textContent = e && e.message ? e.message : "Saqlab boʻlmadi."; if (e && e.status === 401) guard(); }
+  finally { if (btn) btn.disabled = false; }
+}
+async function deleteReport(btn){
+  if (!guard()) return;
+  const code = A.sel; if (!code) return;
+  if (A.delArmed !== code) {
+    A.delArmed = code; btn.textContent = "Oʻchirishni tasdiqlang";
+    setTimeout(() => { if (A.delArmed === code) { A.delArmed = null; const b = $("#admDel"); if (b) b.textContent = "Murojaatni oʻchirish"; } }, 4000);
+    return;
+  }
+  A.delArmed = null;
+  try {
+    await Auth.api("/reports/" + encodeURIComponent(code), { method: "DELETE" });
+    A.reports.delete(code); A.responses.delete(code);
+    A.sel = null; renderReports(); renderPanel(true); renderFilters();
+    toast("Murojaat oʻchirildi");
+  } catch (e) { $("#admErr").textContent = e && e.message ? e.message : "Oʻchirib boʻlmadi."; }
+}
+
+function csvCell(v){
+  let s = v == null ? "" : String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; // formula injection himoyasi
+  return '"' + s.replace(/"/g, '""') + '"';
+}
+function exportCsv(){
+  const head = ["Raqam","Tur","Daraxt turi","Soni","Tuman","Manzil","Moʻljal","Kenglik","Uzunlik","Xavf","Kesish davom etmoqda","Holat","Masʼul tashkilot","Javob","Tavsif","Yuboruvchi","Kanal","Sana"];
+  const rows = filtered().map(r => {
+    const resp = A.responses.get(r.code) || {};
+    return [r.code, TYPES[typeOf(r)].label, r.species || "", COUNTS[r.count] || r.count || "", r.district || "", r.address || "", r.landmark || "", r.lat, r.lon,
+      r.danger ? "ha" : "yoʻq", r.active ? "ha" : "yoʻq", STATUS[statusOf(r.code)].label, resp.org || "", resp.text || "", r.description || "", r.name || "",
+      r.via === "telegram" ? "Telegram" : "Sayt", isFinite(r.createdAt) ? new Date(r.createdAt).toISOString() : ""];
+  });
+  const csv = "﻿" + [head].concat(rows).map(a => a.map(csvCell).join(",")).join("\r\n");
+  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a"); a.href = url; a.download = "murojaatlar-" + new Date().toISOString().slice(0, 10) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/* ---------- Telegram link ---------- */
+async function renderTg(){
+  $("#tgErr").textContent = ""; $("#tgCodeBox").hidden = true;
+  let cfg = null;
+  try { cfg = await Auth.api("/config"); } catch (e) { $("#tgInfo").textContent = "Serverga ulanib boʻlmadi."; return; }
+  const me = Auth.current() || {};
+  const open = $("#tgOpenBot");
+  if (!cfg.botUsername) {
+    $("#tgInfo").textContent = "Telegram bot hozircha ishlamayapti. Super admin serverda TELEGRAM_BOT_TOKEN ni sozlashi kerak.";
+    open.hidden = true; $("#tgMake").hidden = true; $("#tgUnlink").hidden = true; return;
+  }
+  open.href = "https://t.me/" + cfg.botUsername; open.textContent = "@" + cfg.botUsername + " ni ochish"; open.hidden = false;
+  $("#tgInfo").textContent = me.telegram
+    ? "Hisobingiz Telegramga ulangan: yangi murojaatlar haqida xabar olasiz, holatni va javobni botdan ham oʻzgartira olasiz."
+    : "Hisobingizni ulang: yangi murojaatlar Telegramga keladi va ularga botdan javob berishingiz mumkin.";
+  $("#tgMake").hidden = !!me.telegram; $("#tgUnlink").hidden = !me.telegram;
+}
+
+/* ---------- tabs ---------- */
+function showTab(t){
+  A.tab = t;
+  ["reports", "account"].forEach(x => { $("#s-" + x).hidden = x !== t; });
+  $$("#tabs button").forEach(b => { if (b.dataset.tab === t) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  if (t === "account") { $("#accInfo").textContent = A.me.name + " (" + A.me.login + "), " + (Auth.isSuper() ? "super admin" : "moderator") + "."; renderTg(); }
+  if (location.hash.slice(1) !== t) { try { history.replaceState(null, "", "#" + t); } catch (e) {} }
+}
+function refreshMust(){
+  const me = Auth.current();
+  $("#mustChange").hidden = !(me && me.mustChange);
+}
+
+/* ---------- wiring ---------- */
+function wire(){
+  $("#meBadge").textContent = Auth.isSuper() ? (/^super admin$/i.test(A.me.name) ? "Super admin" : A.me.name + " · super admin") : A.me.name + " · moderator";
+  $("#superLink").hidden = !Auth.isSuper();
+  $("#mapLink").hidden = !Auth.isSuper();   // moderators work from the list only; the full map is for super admins
+  $("#btnOut").addEventListener("click", async () => { try { await Auth.logout(); } catch (e) {} location.replace("login.html"); });
+  $("#tabs").addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (b) showTab(b.dataset.tab); });
+  document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) { e.preventDefault(); showTab(g.dataset.goto); } });
+
+  $("#stats").addEventListener("click", e => {
+    const b = e.target.closest(".stat"); if (!b) return;
+    A.fil.status = A.fil.status === b.dataset.st ? "all" : b.dataset.st; A.limit = 50; renderReports();
+  });
+  $("#q").addEventListener("input", e => { A.fil.q = e.target.value; A.limit = 50; renderTable(); });
+  $("#fType").addEventListener("change", e => { A.fil.type = e.target.value; A.limit = 50; renderTable(); });
+  $("#fDistrict").addEventListener("change", e => { A.fil.district = e.target.value; A.limit = 50; renderTable(); });
+  $("#fSort").addEventListener("change", e => { A.fil.sort = e.target.value; renderTable(); });
+  $("#btnReset").addEventListener("click", () => {
+    A.fil = { q: "", status: "all", type: "all", district: "all", sort: "new" }; A.limit = 50;
+    $("#q").value = ""; $("#fSort").value = "new"; renderFilters(); renderReports();
+  });
+  $("#btnMore").addEventListener("click", () => { A.limit += 50; renderTable(); });
+  $("#btnCsv").addEventListener("click", () => { if (guard()) exportCsv(); });
+  $("#tbody").addEventListener("click", e => { const t = e.target.closest("tr[data-row]"); if (t) openReport(t.dataset.row); });
+
+  const panel = $("#panel");
+  panel.addEventListener("click", e => {
+    if (e.target.closest("[data-act=close]")) closePanel();
+    else if (e.target.closest("#admDel")) deleteReport(e.target.closest("#admDel"));
+  });
+  panel.addEventListener("submit", e => { if (e.target.id === "admForm") saveReply(e); });
+
+  $("#fPw").addEventListener("submit", async e => {
+    e.preventDefault();
+    const err = $("#pwErr"); err.textContent = "";
+    if (!guard()) return;
+    const o = $("#pwOld").value, n = $("#pwNew").value, n2 = $("#pwNew2").value;
+    if (!o) { err.textContent = "Joriy parolni kiriting."; $("#pwOld").focus(); return; }
+    if (n !== n2) { err.textContent = "Yangi parollar bir xil emas."; $("#pwNew2").focus(); return; }
+    try { await Auth.changePassword(o, n); $("#fPw").reset(); refreshMust(); toast("Parol oʻzgartirildi"); }
+    catch (x) { err.textContent = x && x.message ? x.message : "Parolni oʻzgartirib boʻlmadi."; }
+  });
+
+  $("#tgMake").addEventListener("click", async () => {
+    $("#tgErr").textContent = "";
+    try {
+      const r = await Auth.api("/auth/telegram-link", { method: "POST" });
+      if (!r.botUsername) { $("#tgErr").textContent = "Bot hozir ishlamayapti."; return; }
+      $("#tgCode").textContent = "/link " + r.code;
+      $("#tgDeep").href = "https://t.me/" + r.botUsername + "?start=link_" + r.code;
+      $("#tgCodeBox").hidden = false;
+    } catch (e) { $("#tgErr").textContent = e.message; }
+  });
+  $("#tgUnlink").addEventListener("click", async () => {
+    try { await Auth.api("/auth/telegram-link", { method: "DELETE" }); await Auth.refresh(); renderTg(); toast("Telegram ulanishi uzildi."); }
+    catch (e) { $("#tgErr").textContent = e.message; }
+  });
+
+  window.addEventListener("storage", e => { if (e.key === Auth.KEYS.token) Auth.refresh().then(() => { guard(); }); });
+  window.addEventListener("hashchange", () => { const t = location.hash.slice(1); if (["reports", "account"].indexOf(t) >= 0 && t !== A.tab) showTab(t); });
+
+  // live: any change made on the site, in the bot or by another moderator arrives here
+  Auth.subscribe(async ev => {
+    if (ev.kind === "users" || ev.kind === "tg") { await Auth.refresh(); if (!guard()) return; refreshMust(); if (A.tab === "account") renderTg(); }
+    if (ev.v !== A.version) {
+      try { await load(); } catch (e) { A.live = false; updateBadge(); return; }
+      updateBadge(); renderFilters(); renderReports(); renderPanel(false);
+    }
+  }, up => { A.live = up; updateBadge(); });
+}
+
+/* ---------- boot ---------- */
+(async () => {
+  try { await Auth.init(); } catch (e) {}
+  if (!guard()) return;
+  document.body.classList.add("ready");
+  try { await load(); } catch (e) { toast(e && e.message ? e.message : "Maʼlumotlarni yuklab boʻlmadi."); }
+  updateBadge();
+  wire(); renderFilters(); renderReports(); renderPanel(true); refreshMust();
+  const t = location.hash.slice(1);
+  if (t === "users" && Auth.isSuper()) { location.replace("superadmin.html#users"); return; }
+  showTab(t === "account" ? "account" : "reports");
+})();
+})();
+</script>
+
+</body>
+</html>

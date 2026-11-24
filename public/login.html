@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kirish — Yashil Toshkent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+.wrap{min-height:calc(100vh - 56px);display:grid;place-items:center;padding:24px 16px}
+.shell{width:100%;max-width:880px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.hero{background:var(--accent);color:var(--accent-ink);padding:32px 28px;display:flex;flex-direction:column;gap:18px;justify-content:center}
+.hero svg{width:64px;height:64px}
+.hero svg *{stroke:var(--accent-ink)!important}
+.hero svg circle:last-child{fill:var(--accent-ink)!important}
+.hero h2{font-size:26px;font-weight:700}
+.hero p{margin:0;opacity:.92}
+.hero ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px}
+.hero li{display:grid;grid-template-columns:18px 1fr;gap:8px}
+.hero li::before{content:"✓";font-weight:700}
+.card{padding:28px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:10px;background:var(--bg);border:1px solid var(--line);margin-bottom:20px}
+.seg button{border:0;background:none;padding:9px 8px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.pw{position:relative}
+.pw .inp{padding-right:78px}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--accent);font-weight:600;cursor:pointer;padding:6px 8px;border-radius:6px;font-size:13px}
+.me{display:grid;gap:12px}
+.me h2{font-size:22px}
+.foot{margin-top:16px;font-size:13px;color:var(--muted);text-align:center}
+@media (max-width:760px){
+  .shell{grid-template-columns:1fr}
+  .hero{padding:20px 22px;gap:10px}
+  .hero svg,.hero ul,.hero p{display:none}
+  .hero h2{font-size:20px}
+  .card{padding:22px 18px}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="none" stroke="var(--ring)" stroke-width="2"/>
+    <circle cx="20" cy="20" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="20" cy="20" r="6" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity=".6"/>
+    <circle cx="20" cy="20" r="2.2" fill="var(--accent)"/>
+  </svg>
+  <div class="brand"><h1>Yashil Toshkent</h1><p>Daraxt va yashil hudud muammolari xaritasi</p></div>
+  <div class="top-right"><a class="btn sm" href="index.html">Xaritaga qaytish</a></div>
+</header>
+
+<div class="wrap">
+  <div class="shell">
+    <section class="hero" aria-hidden="false">
+      <svg viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="none" stroke-width="2" opacity=".5"/>
+        <circle cx="20" cy="20" r="12" fill="none" stroke-width="2.5"/>
+        <circle cx="20" cy="20" r="6" fill="none" stroke-width="2.5" opacity=".7"/>
+        <circle cx="20" cy="20" r="2.2"/>
+      </svg>
+      <h2>Shaharni birga yashil qilamiz</h2>
+      <p>Hisob ochib, muammoli daraxt yoki yashil hududni xaritada belgilang va javobni kuzating.</p>
+      <ul>
+        <li>Murojaatlaringiz bir joyda saqlanadi</li>
+        <li>Telefon raqam talab qilinmaydi</li>
+        <li>Moderatorlar javobi xaritada koʻrinadi</li>
+        <li>Telegram bot orqali ham murojaat yuborish mumkin</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <div id="notice" class="banner" hidden style="margin-bottom:16px"></div>
+
+      <div id="already" class="me" hidden>
+        <h2 id="meTitle">Siz tizimdasiz</h2>
+        <p class="help" id="meText" style="margin:0"></p>
+        <div class="row">
+          <a class="btn primary" id="meGo" href="index.html">Xaritaga oʻtish</a>
+          <a class="btn" id="meAdmin" href="admin.html" hidden>Moderator paneli</a>
+          <a class="btn" id="meSuper" href="superadmin.html" hidden>Super admin</a>
+          <button type="button" class="btn" id="meOut">Boshqa hisobga kirish</button>
+        </div>
+      </div>
+
+      <div id="forms">
+        <div class="seg" role="tablist" aria-label="Kirish yoki roʻyxatdan oʻtish">
+          <button type="button" role="tab" id="tabIn" aria-selected="true" aria-controls="fIn">Kirish</button>
+          <button type="button" role="tab" id="tabUp" aria-selected="false" aria-controls="fUp">Roʻyxatdan oʻtish</button>
+        </div>
+
+        <form id="fIn" novalidate>
+          <div class="fld">
+            <label class="lab" for="inLogin">Login</label>
+            <input class="inp" id="inLogin" autocomplete="username" autocapitalize="none" spellcheck="false">
+          </div>
+          <div class="fld">
+            <label class="lab" for="inPw">Parol</label>
+            <div class="pw">
+              <input class="inp" id="inPw" type="password" autocomplete="current-password">
+              <button type="button" data-toggle="inPw" aria-pressed="false">Koʻrsatish</button>
+            </div>
+          </div>
+          <label class="chk" style="margin-bottom:14px"><input type="checkbox" id="inRemember" checked> Bu qurilmada eslab qolish</label>
+          <p class="err" id="inErr" role="alert"></p>
+          <button type="submit" class="btn primary block" id="inBtn">Kirish</button>
+        </form>
+
+        <form id="fUp" novalidate hidden>
+          <div class="fld">
+            <label class="lab" for="upName">Ismingiz</label>
+            <input class="inp" id="upName" maxlength="40" autocomplete="name">
+            <p class="err" id="upNameErr" role="alert"></p>
+          </div>
+          <div class="fld">
+            <label class="lab" for="upLogin">Login</label>
+            <input class="inp" id="upLogin" maxlength="40" autocomplete="username" autocapitalize="none" spellcheck="false">
+            <p class="help">Lotin harflari, raqamlar va . _ - belgilari. Kamida 3 ta belgi.</p>
+            <p class="err" id="upLoginErr" role="alert"></p>
+          </div>
+          <div class="fld">
+            <label class="lab" for="upPw">Parol</label>
+            <div class="pw">
+              <input class="inp" id="upPw" type="password" autocomplete="new-password">
+              <button type="button" data-toggle="upPw" aria-pressed="false">Koʻrsatish</button>
+            </div>
+            <p class="help">Kamida 8 ta belgi, harf va raqam bilan.</p>
+            <p class="err" id="upPwErr" role="alert"></p>
+          </div>
+          <div class="fld">
+            <label class="lab" for="upPw2">Parolni takrorlang</label>
+            <input class="inp" id="upPw2" type="password" autocomplete="new-password">
+            <p class="err" id="upPw2Err" role="alert"></p>
+          </div>
+          <p class="err" id="upErr" role="alert"></p>
+          <button type="submit" class="btn primary block" id="upBtn">Hisob ochish</button>
+        </form>
+        <p class="foot">Moderatorlar va super adminlar ham shu sahifa orqali kiradi.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const params = new URLSearchParams(location.search);
+const next = Auth.safeNext(params.get("next"));
+const denied = params.get("denied") === "1";
+
+function setTab(which){
+  const up = which === "up";
+  $("#tabIn").setAttribute("aria-selected", String(!up));
+  $("#tabUp").setAttribute("aria-selected", String(up));
+  $("#fIn").hidden = up; $("#fUp").hidden = !up;
+  (up ? $("#upName") : $("#inLogin")).focus();
+}
+$("#tabIn").addEventListener("click", () => setTab("in"));
+$("#tabUp").addEventListener("click", () => setTab("up"));
+
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-toggle]"); if (!b) return;
+  const inp = $("#" + b.dataset.toggle);
+  const show = inp.type === "password";
+  inp.type = show ? "text" : "password";
+  b.textContent = show ? "Yashirish" : "Koʻrsatish";
+  b.setAttribute("aria-pressed", String(show));
+});
+
+function notice(msg, kind){
+  const n = $("#notice");
+  if (!msg) { n.hidden = true; return; }
+  n.textContent = msg; n.className = "banner" + (kind ? " " + kind : ""); n.hidden = false;
+}
+function destination(user){
+  const staff = user.role === "admin" || user.role === "superadmin";
+  if (next.indexOf("superadmin.html") === 0) return user.role === "superadmin" ? next : "index.html";
+  if (next.indexOf("admin.html") === 0) return staff ? next : "index.html";
+  if (next) return next;
+  return user.role === "superadmin" ? "superadmin.html" : staff ? "admin.html" : "index.html";
+}
+
+function showAlready(me){
+  $("#forms").hidden = false;
+  $("#already").hidden = true;
+  if (!me) return;
+  $("#forms").hidden = true; $("#already").hidden = false;
+  $("#meTitle").textContent = "Salom, " + me.name;
+  const staff = me.role === "admin" || me.role === "superadmin";
+  $("#meText").textContent = me.role === "superadmin"
+    ? "Siz super admin sifatida tizimdasiz (" + me.login + ")."
+    : me.role === "admin"
+    ? "Siz moderator sifatida tizimdasiz (" + me.login + ")." + (denied ? " Super admin sahifasi faqat super adminlar uchun." : "")
+    : "Siz tizimdasiz (" + me.login + ")." + (denied ? " Bu sahifa faqat moderatorlar uchun." : "");
+  $("#meAdmin").hidden = !staff;
+  $("#meSuper").hidden = me.role !== "superadmin";
+  if (denied && !staff) notice("Bu sahifaga kirish huquqingiz yoʻq. Moderator hisobi bilan kiring.", "bad");
+  else if (denied) notice("Bu sahifa faqat super adminlar uchun.", "bad");
+}
+
+$("#meOut").addEventListener("click", async () => { await Auth.logout(); notice(""); showAlready(null); setTab("in"); });
+
+$("#fIn").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = $("#inErr"); err.textContent = "";
+  const l = $("#inLogin").value.trim(), p = $("#inPw").value;
+  if (!l || !p) { err.textContent = "Login va parolni kiriting."; (l ? $("#inPw") : $("#inLogin")).focus(); return; }
+  const b = $("#inBtn"); b.disabled = true; b.textContent = "Tekshirilmoqda…";
+  try {
+    const u = await Auth.login(l, p, $("#inRemember").checked);
+    location.replace(destination(u));
+  } catch (x) {
+    err.textContent = x && x.message ? x.message : "Kirib boʻlmadi. Qayta urinib koʻring.";
+    $("#inPw").value = ""; $("#inPw").focus();
+    b.disabled = false; b.textContent = "Kirish";
+  }
+});
+
+$("#fUp").addEventListener("submit", async e => {
+  e.preventDefault();
+  ["upNameErr", "upLoginErr", "upPwErr", "upPw2Err", "upErr"].forEach(i => { $("#" + i).textContent = ""; });
+  const name = $("#upName").value, login = $("#upLogin").value, pw = $("#upPw").value, pw2 = $("#upPw2").value;
+  if (pw !== pw2) { $("#upPw2Err").textContent = "Parollar bir xil emas."; $("#upPw2").focus(); return; }
+  const b = $("#upBtn"); b.disabled = true; b.textContent = "Yaratilmoqda…";
+  try {
+    const u = await Auth.register({ name, login, password: pw, remember: true });
+    location.replace(next && next.indexOf("admin.html") !== 0 && next.indexOf("superadmin.html") !== 0 ? next : "index.html");
+  } catch (x) {
+    const map = { name: "upNameErr", login: "upLoginErr", exists: "upLoginErr", password: "upPwErr" };
+    $("#" + (map[x && x.code] || "upErr")).textContent = x && x.message ? x.message : "Hisob ochib boʻlmadi. Qayta urinib koʻring.";
+    b.disabled = false; b.textContent = "Hisob ochish";
+  }
+});
+
+(async () => {
+  try { await Auth.init(); } catch (e) {}
+  showAlready(Auth.current());
+  try { await Auth.api("/health"); }
+  catch (e) { notice("Serverga ulanib boʻlmadi. Loyiha papkasida «npm start» ni ishga tushiring va sahifani http://localhost:3000 orqali oching.", "bad"); }
+  if (!Auth.current() && /^superadmin/.test(next) && !denied) notice("Super admin sahifasi uchun tizimga kiring.", "");
+  else if (!Auth.current() && next === "admin.html" && !denied) notice("Moderator paneli uchun tizimga kiring.", "");
+  if (!Auth.current()) setTimeout(() => { try { $("#inLogin").focus(); } catch (e) {} }, 0);
+})();
+})();
+</script>
+</body>
+</html>

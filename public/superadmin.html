@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Super admin — Yashil Toshkent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<style>
+:root{ --viz-1:#2a78d6; --viz-grid:#d9e1d4; --viz-bar-bg:#F6F8F3 }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --viz-1:#3987e5; --viz-grid:#26382d; } }
+:root[data-theme="dark"]{ --viz-1:#3987e5; --viz-grid:#26382d }
+
+body{display:none}
+body.ready{display:block}
+.top{position:sticky;top:0;z-index:10}
+.tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--line);padding:0 8px;overflow-x:auto}
+.tabs button{padding:12px 14px;border:0;background:none;cursor:pointer;font-weight:600;border-bottom:3px solid transparent;color:var(--muted);white-space:nowrap}
+.tabs button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tabs span{font-variant-numeric:tabular-nums;font-weight:500}
+.page{padding:16px;max-width:1300px;margin:0 auto}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.pill.live i{background:var(--s-hal)}
+.pill.off i{background:var(--s-korib)}
+h2.sec{font-size:19px;margin:22px 0 10px}
+h2.sec:first-child{margin-top:4px}
+
+/* stat tiles */
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.tile{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 12px}
+.tile b{display:block;font:700 28px/1.1 "Bricolage Grotesque",system-ui,sans-serif;color:var(--c,var(--ink))}
+.tile small{color:var(--muted);font-size:12.5px;font-weight:600}
+.tile.hero b{font-size:48px}
+
+/* charts */
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px;margin-top:10px}
+.chart{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:14px 14px 10px;min-width:0}
+.chart h3{font-size:16px}
+.chart .sub{margin:2px 0 10px;font-size:12.5px;color:var(--muted)}
+.cols{position:relative;display:flex;align-items:flex-end;gap:2px;height:170px;margin-top:18px;padding:0 0 0 0;border-bottom:1px solid var(--line);
+  background:repeating-linear-gradient(to top,transparent 0,transparent calc(25% - 1px),var(--viz-grid) calc(25% - 1px),var(--viz-grid) 25%)}
+.col{flex:1 1 0;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;cursor:default;outline-offset:1px}
+.col i{display:block;width:100%;max-width:24px;background:var(--viz-1);border-radius:4px 4px 0 0;min-height:0}
+.col em{font:600 11px/1 "Public Sans",sans-serif;font-style:normal;color:var(--muted);margin-bottom:3px;font-variant-numeric:tabular-nums}
+.ymax{position:absolute;left:2px;top:-1px;transform:translateY(-100%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.colx{display:flex;gap:2px;margin-top:4px}
+.colx span{flex:1 1 0;min-width:0;text-align:center;font-size:11px;color:var(--muted);overflow:hidden;text-overflow:clip;white-space:nowrap}
+.hbars{display:grid;gap:6px}
+.hb{display:grid;grid-template-columns:minmax(110px,14.5em) 1fr;gap:8px;align-items:center;font-size:13.5px;outline-offset:1px}
+.hb .nm{display:flex;gap:6px;align-items:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb .nm svg{flex:0 0 auto}
+.hb .tr{display:flex;align-items:center;gap:8px;min-width:0}
+.hb .tr i{display:block;height:14px;background:var(--bar,var(--viz-1));border-radius:0 4px 4px 0;min-width:2px}
+.hb .tr b{font-variant-numeric:tabular-nums;font-size:12.5px;color:var(--ink)}
+.chart details{margin-top:10px}
+.chart summary{cursor:pointer;color:var(--muted);font-size:12.5px;font-weight:600}
+.chart table{margin-top:6px;font-size:13px}
+.chart td,.chart th{padding:4px 8px}
+#tip{position:fixed;z-index:60;pointer-events:none;background:var(--ink);color:var(--bg);padding:6px 10px;border-radius:8px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.3);max-width:240px}
+
+/* tables */
+.tw{border:1px solid var(--line);border-radius:10px;overflow:auto;background:var(--panel)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12.5px;color:var(--muted);font-weight:600;padding:9px 10px;background:var(--panel);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.cut{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-tools{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.card{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:16px;max-width:560px;margin-bottom:14px}
+.card.wide{max-width:none}
+.card h2{font-size:19px;margin-bottom:10px}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);max-width:min(440px,92vw);width:100%;padding:20px}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 12px;font-size:14px}
+.kv dt{color:var(--muted);font-weight:600}
+.kv dd{margin:0;overflow-wrap:anywhere}
+.codebox{font:700 22px/1.2 "Bricolage Grotesque",system-ui,sans-serif;padding:10px 12px;border:2px solid var(--accent);border-radius:10px;display:inline-block;user-select:all}
+@media (max-width:640px){ .kv{grid-template-columns:1fr} .tile.hero b{font-size:40px} .brand h1{white-space:nowrap} .brand p{display:none} }
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+    <circle cx="20" cy="20" r="18" fill="none" stroke="var(--ring)" stroke-width="2"/>
+    <circle cx="20" cy="20" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+    <circle cx="20" cy="20" r="6" fill="none" stroke="var(--accent)" stroke-width="2.5" opacity=".6"/>
+    <circle cx="20" cy="20" r="2.2" fill="var(--accent)"/>
+  </svg>
+  <div class="brand"><h1>Super admin</h1><p>Yashil Toshkent — butun tizimni boshqarish</p></div>
+  <div class="top-right">
+    <span class="pill admin" id="meBadge"></span>
+    <span class="pill" id="liveBadge"><i></i><span>Ulanmoqda</span></span>
+    <a class="btn sm primary" href="admin.html">Murojaatlar</a>
+    <a class="btn sm" href="index.html">Xarita</a>
+    <button type="button" class="btn sm" id="btnOut">Chiqish</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Boʻlimlar">
+  <button type="button" data-tab="overview">Umumiy</button>
+  <button type="button" data-tab="users">Foydalanuvchilar <span id="cUsers"></span></button>
+  <button type="button" data-tab="telegram">Telegram bot</button>
+  <button type="button" data-tab="log">Jurnal</button>
+  <button type="button" data-tab="data">Maʼlumotlar</button>
+  <button type="button" data-tab="account">Mening hisobim</button>
+</nav>
+
+<div class="page">
+  <div id="mustChange" class="banner" hidden style="margin-bottom:14px">
+    Siz avtomatik yaratilgan parol bilan kirgansiz. Xavfsizlik uchun <a href="#account" data-goto="account">parolni hoziroq oʻzgartiring</a>.
+  </div>
+  <div id="loadErr" class="banner bad" hidden style="margin-bottom:14px"></div>
+
+  <!-- UMUMIY -->
+  <section id="s-overview">
+    <h2 class="sec">Murojaatlar</h2>
+    <div class="tiles" id="tilesMain"></div>
+    <h2 class="sec">Holatlar va kanallar</h2>
+    <div class="tiles" id="tilesStatus"></div>
+    <div class="charts" id="charts"></div>
+    <h2 class="sec">Foydalanuvchilar</h2>
+    <div class="tiles" id="tilesUsers"></div>
+  </section>
+
+  <!-- FOYDALANUVCHILAR -->
+  <section id="s-users" hidden>
+    <div class="bar-tools">
+      <p class="help" style="margin:0;max-width:720px">Rol bering, bloklang, parolni tiklang yoki yangi hisob oching. <b>Moderator</b> murojaatlarni boshqaradi, <b>Super admin</b> bu sahifaga ham kira oladi. Kamida bitta faol super admin qolishi shart.</p>
+      <button type="button" class="btn primary" id="btnNewUser">Yangi foydalanuvchi</button>
+    </div>
+    <div class="row" style="margin-bottom:10px">
+      <input class="inp" id="uq" type="search" placeholder="Ism yoki login boʻyicha qidirish" style="max-width:320px" autocomplete="off">
+      <select id="uRole" style="width:auto"><option value="all">Barcha rollar</option><option value="user">Foydalanuvchi</option><option value="admin">Moderator</option><option value="superadmin">Super admin</option></select>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Ism</th><th>Login</th><th>Rol</th><th>Holat</th><th>Telegram</th><th>Murojaatlar</th><th>Hisob ochilgan</th><th>Amallar</th></tr></thead>
+      <tbody id="ubody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- TELEGRAM -->
+  <section id="s-telegram" hidden>
+    <div class="card wide">
+      <h2>Bot holati</h2>
+      <dl class="kv" id="botKv"></dl>
+      <div id="botHelp" class="banner" hidden style="margin-top:12px"></div>
+    </div>
+    <div class="card">
+      <h2>Bildirishnomalar</h2>
+      <form id="fSet" novalidate>
+        <div class="fld">
+          <label class="lab" for="setChat">Bildirishnoma chati (guruh yoki kanal)</label>
+          <input class="inp" id="setChat" placeholder="-1001234567890 yoki @kanal_nomi" autocomplete="off" spellcheck="false">
+          <p class="help">Har bir yangi murojaat va holat oʻzgarishi shu chatga ham yuboriladi. Guruhning ID sini bilish uchun botni guruhga qoʻshing va guruhda <code>/id</code> yozing. Guruhdagi tugmalarni faqat ulangan moderatorlar bosa oladi.</p>
+        </div>
+        <label class="chk" style="margin-bottom:12px"><input type="checkbox" id="setAuto"> Moderator Telegramni ulaganda yangi murojaat xabarlari avtomatik yoqilsin</label>
+        <p class="err" id="setErr" role="alert"></p>
+        <div class="row"><button type="submit" class="btn primary">Saqlash</button><button type="button" class="btn" id="btnTest">Test xabar yuborish</button></div>
+      </form>
+    </div>
+    <h2 class="sec">Bot foydalanuvchilari <span class="muted" id="cTg"></span></h2>
+    <div class="tw"><table>
+      <thead><tr><th>Ism</th><th>Username</th><th>Telefon</th><th>Sayt hisobi</th><th>Yangi murojaatlar xabari</th><th>Holat</th><th>Qoʻshilgan</th><th></th></tr></thead>
+      <tbody id="tgbody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- JURNAL -->
+  <section id="s-log" hidden>
+    <p class="help" style="margin-top:0">Oxirgi harakatlar: kim, qachon va nima qilgan (sayt va bot orqali). Eng yangilari tepada.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Vaqt</th><th>Kim</th><th>Harakat</th><th>Obyekt</th><th>Tafsilot</th></tr></thead>
+      <tbody id="lbody"></tbody>
+    </table></div>
+    <div class="row" style="margin-top:10px"><button type="button" class="btn sm" id="btnLogMore" hidden>Yana koʻrsatish</button></div>
+  </section>
+
+  <!-- MA'LUMOTLAR -->
+  <section id="s-data" hidden>
+    <div class="card">
+      <h2>Zaxira nusxa</h2>
+      <p class="help" style="margin-top:0">Barcha murojaatlar, javoblar, foydalanuvchilar (parolsiz) va sozlamalar bitta JSON faylda. Rasmlar serverdagi <code>data/photos</code> papkasida saqlanadi — papkaning oʻzini ham nusxalang.</p>
+      <button type="button" class="btn" id="btnExport">JSON yuklab olish</button>
+    </div>
+    <div class="card">
+      <h2>Eski saytdan koʻchirish</h2>
+      <p class="help" style="margin-top:0">Avval murojaatlar faqat brauzerda (<code>localStorage</code>) saqlangan edi. Eski sahifada brauzer konsolini (F12) oching va <code>copy(localStorage.getItem("td:data"))</code> ni bajaring, soʻng natijani shu yerga qoʻying yoki fayl sifatida tanlang. Allaqachon mavjud raqamlar oʻtkazib yuboriladi.</p>
+      <div class="fld"><textarea id="impText" placeholder='{"r":[...],"p":[...],"f":[...]}' style="min-height:90px;font-family:ui-monospace,monospace;font-size:12.5px"></textarea></div>
+      <div class="row"><input type="file" id="impFile" accept=".json,application/json,text/plain"><button type="button" class="btn primary" id="btnImport">Koʻchirish</button></div>
+      <p class="err" id="impErr" role="alert"></p>
+      <p class="help" id="impOk"></p>
+    </div>
+  </section>
+
+  <!-- HISOB -->
+  <section id="s-account" hidden>
+    <div class="card">
+      <h2>Parolni oʻzgartirish</h2>
+      <p class="help" id="accInfo" style="margin-top:0"></p>
+      <form id="fPw" novalidate>
+        <div class="fld"><label class="lab" for="pwOld">Joriy parol</label><input class="inp" id="pwOld" type="password" autocomplete="current-password"></div>
+        <div class="fld"><label class="lab" for="pwNew">Yangi parol</label><input class="inp" id="pwNew" type="password" autocomplete="new-password"><p class="help">Kamida 8 ta belgi, harf va raqam bilan.</p></div>
+        <div class="fld"><label class="lab" for="pwNew2">Yangi parolni takrorlang</label><input class="inp" id="pwNew2" type="password" autocomplete="new-password"></div>
+        <p class="err" id="pwErr" role="alert"></p>
+        <button type="submit" class="btn primary">Parolni saqlash</button>
+      </form>
+    </div>
+    <div class="card" id="tgCard">
+      <h2>Telegram</h2>
+      <p class="help" id="tgInfo" style="margin-top:0">Yuklanmoqda…</p>
+      <div class="row"><a class="btn" id="tgOpenBot" target="_blank" rel="noopener" href="#" hidden>Botni ochish</a>
+        <button type="button" class="btn primary" id="tgMake" hidden>Hisobni ulash</button>
+        <button type="button" class="btn danger" id="tgUnlink" hidden>Ulanishni uzish</button></div>
+      <div id="tgCodeBox" hidden style="margin-top:12px">
+        <p class="help">Quyidagi tugmani bosing yoki kodni botga yuboring (10 daqiqa amal qiladi):</p>
+        <div class="codebox" id="tgCode"></div>
+        <div class="row" style="margin-top:10px"><a class="btn primary" id="tgDeep" target="_blank" rel="noopener" href="#">Botda ulash</a></div>
+      </div>
+      <p class="err" id="tgErr" role="alert"></p>
+    </div>
+  </section>
+</div>
+
+<dialog id="dlgNew">
+  <form id="fNew" novalidate method="dialog">
+    <h3 style="font-size:18px;margin-bottom:10px">Yangi foydalanuvchi</h3>
+    <div class="fld"><label class="lab" for="nName">Ism</label><input class="inp" id="nName" maxlength="40" autocomplete="off"></div>
+    <div class="fld"><label class="lab" for="nLogin">Login</label><input class="inp" id="nLogin" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false"></div>
+    <div class="fld"><label class="lab" for="nPw">Vaqtinchalik parol</label><input class="inp" id="nPw" type="text" autocomplete="off" spellcheck="false"><p class="help">Kamida 8 ta belgi, harf va raqam. Foydalanuvchi birinchi kirishda uni oʻzgartirishi soʻraladi. Parolni oʻzingiz yetkazing.</p></div>
+    <div class="fld"><label class="lab" for="nRole">Rol</label><select id="nRole"><option value="user">Foydalanuvchi</option><option value="admin" selected>Moderator</option><option value="superadmin">Super admin</option></select></div>
+    <p class="err" id="nErr" role="alert"></p>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-close>Bekor qilish</button><button type="submit" class="btn primary">Yaratish</button></div>
+  </form>
+</dialog>
+<dialog id="dlgPw">
+  <form id="fDlg" novalidate method="dialog">
+    <h3 id="dlgTitle" style="font-size:18px;margin-bottom:10px">Parolni tiklash</h3>
+    <div class="fld"><label class="lab" for="dlgPwInp">Yangi parol</label><input class="inp" id="dlgPwInp" type="text" autocomplete="off" spellcheck="false"><p class="help">Kamida 8 ta belgi, harf va raqam bilan. Foydalanuvchining barcha sessiyalari yopiladi. Parolni oʻzingiz yetkazing.</p></div>
+    <p class="err" id="dlgErr" role="alert"></p>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn" data-close>Bekor qilish</button><button type="submit" class="btn primary">Saqlash</button></div>
+  </form>
+</dialog>
+<div id="tip" hidden></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="auth.js"></script>
+<script>
+(() => {
+"use strict";
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MONTHS = ["yan","fev","mar","apr","may","iyn","iyl","avg","sen","okt","noy","dek"];
+const p2 = n => String(n).padStart(2, "0");
+function fmtDate(ts){ const d = new Date(ts); if (!isFinite(d.getTime()) || !ts) return "—"; return d.getDate() + "-" + MONTHS[d.getMonth()] + " " + d.getFullYear() + ", " + p2(d.getHours()) + ":" + p2(d.getMinutes()); }
+let toastT = 0;
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 4200); }
+const ROLE = { user: "Foydalanuvchi", admin: "Moderator", superadmin: "Super admin" };
+const TYPES = {
+  chirigan: { label: "Chirigan daraxt", shape: "circle" }, zarar: { label: "Zarar yetgan daraxt", shape: "triangle" },
+  qurigan: { label: "Qurigan daraxt", shape: "diamond" }, kesish: { label: "Noqonuniy kesish", shape: "square" }, yashil: { label: "Yashil hudud muammosi", shape: "hex" }
+};
+function shapeSVG(shape, key, size){
+  const f = 'style="fill:var(--t-' + key + ')" stroke="var(--panel)" stroke-width="1.5"';
+  let g;
+  if (shape === "circle") g = '<circle cx="12" cy="12" r="8.5" ' + f + '/>';
+  else if (shape === "triangle") g = '<polygon points="12,2.8 22,20.5 2,20.5" ' + f + ' stroke-linejoin="round"/>';
+  else if (shape === "diamond") g = '<polygon points="12,1.8 21.5,12 12,22.2 2.5,12" ' + f + ' stroke-linejoin="round"/>';
+  else if (shape === "square") g = '<rect x="3.5" y="3.5" width="17" height="17" rx="2" ' + f + '/><path d="M8 8l8 8M16 8l-8 8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>';
+  else g = '<polygon points="12,2.2 20.6,7.1 20.6,16.9 12,21.8 3.4,16.9 3.4,7.1" ' + f + ' stroke-linejoin="round"/>';
+  return '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '" aria-hidden="true">' + g + '</svg>';
+}
+
+const S = { me: null, tab: "overview", version: -1, live: false, users: [], tgusers: [], audit: [], logLimit: 100, settings: null, bot: null, delArmed: null, ov: null, loaded: {} };
+
+function guard(){
+  const me = Auth.current();
+  if (!me || me.role !== "superadmin") { location.replace("login.html?next=superadmin.html" + (me ? "&denied=1" : "")); return null; }
+  S.me = me; return me;
+}
+function updateBadge(){
+  const b = $("#liveBadge"); b.classList.remove("live", "off");
+  if (S.live) { b.classList.add("live"); b.lastElementChild.textContent = "Jonli"; }
+  else { b.classList.add("off"); b.lastElementChild.textContent = "Aloqa yoʻq"; }
+}
+function showErr(e){
+  const b = $("#loadErr");
+  if (!e) { b.hidden = true; return; }
+  if (e.status === 401 || e.status === 403) { guard(); Auth.refresh().then(guard); }
+  b.textContent = e.message || "Maʼlumotlarni yuklab boʻlmadi."; b.hidden = false;
+}
+
+/* =========================================================== OVERVIEW */
+function tile(label, value, color, cls){ return '<div class="tile ' + (cls || "") + '"' + (color ? ' style="--c:' + color + '"' : "") + '><b>' + esc(value) + '</b><small>' + esc(label) + '</small></div>'; }
+const fmtN = n => Number(n).toLocaleString("en-US").replace(/,/g, " ");
+
+/* ---- charts: thin columns / horizontal bars, one series colour, hover tooltip, table view ---- */
+const tip = $("#tip");
+function showTip(el, text){
+  tip.textContent = text; tip.hidden = false;
+  const r = el.getBoundingClientRect(), t = tip.getBoundingClientRect();
+  tip.style.left = Math.max(8, Math.min(innerWidth - t.width - 8, r.left + r.width / 2 - t.width / 2)) + "px";
+  tip.style.top = Math.max(8, r.top - t.height - 8) + "px";
+}
+document.addEventListener("mouseover", e => { const t = e.target.closest("[data-tip]"); if (t) showTip(t, t.dataset.tip); else tip.hidden = true; });
+document.addEventListener("focusin", e => { const t = e.target.closest("[data-tip]"); if (t) showTip(t, t.dataset.tip); });
+document.addEventListener("focusout", () => { tip.hidden = true; });
+document.addEventListener("mouseleave", () => { tip.hidden = true; });
+window.addEventListener("scroll", () => { tip.hidden = true; }, { passive: true });
+
+function tableOf(rows, h1, h2){
+  return '<details><summary>Jadval koʻrinishi</summary><table><thead><tr><th>' + esc(h1) + '</th><th class="num">' + esc(h2) + '</th></tr></thead><tbody>' +
+    rows.map(r => '<tr><td>' + esc(r.label) + '</td><td class="num">' + r.n + '</td></tr>').join("") + '</tbody></table></details>';
+}
+function columnsChart(title, sub, days){
+  const max = Math.max(1, ...days.map(d => d.n)), top = Math.ceil(max / 4) * 4 || 4;
+  const lab = d => { const x = new Date(d.t); return x.getDate() + "-" + MONTHS[x.getMonth()]; };
+  const rows = days.map(d => ({ label: lab(d), n: d.n }));
+  const total = days.reduce((a, d) => a + d.n, 0);
+  return '<div class="chart"><h3>' + esc(title) + '</h3><p class="sub">' + esc(sub) + ' · jami ' + total + '</p>' +
+    '<div class="cols" role="img" aria-label="' + esc(title + ": " + rows.map(r => r.label + " — " + r.n).join(", ")) + '">' +
+    '<span class="ymax">' + top + '</span>' + days.map(d => '<div class="col" tabindex="0" data-tip="' + esc(lab(d) + ": " + d.n + " ta") + '"><i style="height:' + (d.n / top * 100) + '%"></i></div>').join("") + '</div>' +
+    '<div class="colx">' + days.map((d, i) => '<span>' + (i % 2 === (days.length - 1) % 2 ? esc(String(new Date(d.t).getDate())) : "") + '</span>').join("") + '</div>' + tableOf(rows, "Sana", "Murojaatlar") + '</div>';
+}
+function barsChart(title, sub, rows, opts){
+  opts = opts || {};
+  const max = Math.max(1, ...rows.map(r => r.n));
+  return '<div class="chart"><h3>' + esc(title) + '</h3><p class="sub">' + esc(sub) + '</p><div class="hbars" role="img" aria-label="' + esc(title + ": " + rows.map(r => r.label + " — " + r.n).join(", ")) + '">' +
+    rows.map(r => '<div class="hb" tabindex="0" data-tip="' + esc(r.label + ": " + r.n + " ta") + '"><span class="nm">' + (r.icon || "") + '<span>' + esc(r.label) + '</span></span>' +
+      '<span class="tr"><i style="width:calc(' + (r.n / max * 100) + '% - 36px);' + (r.color ? "--bar:" + r.color : "") + '"></i><b>' + r.n + '</b></span></div>').join("") + '</div>' + tableOf(rows, opts.h1 || "Nomi", "Murojaatlar") + '</div>';
+}
+
+function renderOverview(){
+  const o = S.ov; if (!o) return;
+  $("#tilesMain").innerHTML = tile("Jami murojaat", fmtN(o.reports), "", "hero") + tile("Hal etilmagan", fmtN(o.open)) + tile("Shoshilinch (ochiq)", fmtN(o.urgent), "var(--danger)") +
+    tile("Bugun", fmtN(o.today)) + tile("Oxirgi 7 kun", fmtN(o.week)) + tile("Oʻrtacha javob vaqti", o.avgResponseHours == null ? "—" : (o.avgResponseHours < 1 ? Math.max(1, Math.round(o.avgResponseHours * 60)) + " daqiqa" : o.avgResponseHours < 48 ? o.avgResponseHours + " soat" : Math.round(o.avgResponseHours / 24) + " kun"));
+  $("#tilesStatus").innerHTML = tile("Yangi", o.byStatus.yangi, "var(--s-yangi)") + tile("Koʻrib chiqilmoqda", o.byStatus.korib, "var(--s-korib)") + tile("Hal qilindi", o.byStatus.hal, "var(--s-hal)") +
+    tile("Rad etildi", o.byStatus.rad, "var(--s-rad)") + tile("Sayt orqali", o.byVia.web) + tile("Telegram orqali", o.byVia.telegram);
+  const dist = Object.entries(o.byDistrict).filter(e => e[0]).map(e => ({ label: e[0] + " tumani", n: e[1] })).sort((a, b) => b.n - a.n);
+  const types = Object.keys(TYPES).map(k => ({ label: TYPES[k].label, n: o.byType[k] || 0, icon: shapeSVG(TYPES[k].shape, k, 16), color: "var(--t-" + k + ")" })).sort((a, b) => b.n - a.n);
+  $("#charts").innerHTML = columnsChart("Yangi murojaatlar", "Oxirgi 14 kun", o.days) +
+    barsChart("Tumanlar boʻyicha", "Koʻp murojaat kelgan tumanlar", dist.length ? dist : [], { h1: "Tuman" }) +
+    barsChart("Muammo turlari", "Turi boʻyicha taqsimot", types, { h1: "Tur" });
+  $("#tilesUsers").innerHTML = tile("Foydalanuvchilar", o.users) + tile("Moderatorlar", o.admins) + tile("Super adminlar", o.supers) + tile("Bloklangan", o.blocked, o.blocked ? "var(--danger)" : "") +
+    tile("Botdagi foydalanuvchilar", o.tgUsers) + tile("Saytga ulangan Telegram", o.tgLinked);
+}
+
+/* =========================================================== USERS */
+function renderUsers(){
+  const q = $("#uq").value.trim().toLowerCase(), rf = $("#uRole").value;
+  const list = S.users.filter(u => (rf === "all" || u.role === rf) && (!q || (u.name + " " + u.login).toLowerCase().indexOf(q) >= 0))
+    .sort((a, b) => ["superadmin", "admin", "user"].indexOf(a.role) - ["superadmin", "admin", "user"].indexOf(b.role) || (a.createdAt || 0) - (b.createdAt || 0));
+  $("#cUsers").textContent = S.users.length ? "(" + S.users.length + ")" : "";
+  $("#ubody").innerHTML = list.length ? list.map(u => {
+    const self = u.id === S.me.id;
+    return '<tr><td><b>' + esc(u.name) + '</b>' + (self ? ' <span class="muted">(siz)</span>' : "") + '</td><td class="muted">' + esc(u.login) + '</td>' +
+      '<td><select data-role="' + esc(u.id) + '" aria-label="' + esc(u.name) + ' roli"' + (self ? " disabled" : "") + ' style="width:auto">' +
+      Object.keys(ROLE).map(r => '<option value="' + r + '"' + (u.role === r ? " selected" : "") + '>' + ROLE[r] + '</option>').join("") + '</select></td>' +
+      '<td>' + (u.blocked ? '<span class="badge urgent">Bloklangan</span>' : '<span class="badge" style="--c:var(--s-hal)">Faol</span>') + '</td>' +
+      '<td>' + (u.telegram ? '<span class="badge" style="--c:var(--s-yangi)">Ulangan</span> <button type="button" class="btn sm" data-uact="untg" data-id="' + esc(u.id) + '">Uzish</button>' : '<span class="muted">—</span>') + '</td>' +
+      '<td class="num">' + (u.reports || 0) + '</td><td class="num muted">' + esc(fmtDate(u.createdAt)) + '</td>' +
+      '<td><div class="row"><button type="button" class="btn sm" data-uact="pw" data-id="' + esc(u.id) + '" data-name="' + esc(u.name) + '">Parol</button>' +
+      (self ? "" : '<button type="button" class="btn sm" data-uact="block" data-id="' + esc(u.id) + '" data-blocked="' + (u.blocked ? 1 : 0) + '">' + (u.blocked ? "Blokdan chiqarish" : "Bloklash") + '</button>' +
+      '<button type="button" class="btn sm danger" data-uact="del" data-id="' + esc(u.id) + '">Oʻchirish</button>') + '</div></td></tr>';
+  }).join("") : '<tr><td colspan="8" class="muted" style="padding:22px;text-align:center">Hech narsa topilmadi.</td></tr>';
+}
+async function loadUsers(){ const r = await Auth.api("/super/users"); S.users = r.users || []; S.loaded.users = true; renderUsers(); }
+
+/* =========================================================== TELEGRAM */
+function renderBot(){
+  const b = S.bot, set = S.settings; if (!b || !set) return;
+  const state = !b.configured ? '<span class="badge" style="--c:var(--s-korib)">Sozlanmagan</span>' : b.running ? '<span class="badge" style="--c:var(--s-hal)">Ishlayapti</span>' : '<span class="badge urgent">Ishlamayapti</span>';
+  $("#botKv").innerHTML = '<dt>Holat</dt><dd>' + state + '</dd>' +
+    '<dt>Bot</dt><dd>' + (b.username ? '<a href="https://t.me/' + esc(b.username) + '" target="_blank" rel="noopener">@' + esc(b.username) + '</a>' : "—") + '</dd>' +
+    '<dt>Ishga tushgan</dt><dd>' + (b.startedAt ? esc(fmtDate(b.startedAt)) : "—") + '</dd>' +
+    '<dt>Oxirgi xato</dt><dd>' + (b.lastError ? esc(b.lastError) : "yoʻq") + '</dd>' +
+    '<dt>Sayt manzili</dt><dd>' + (S.publicUrl ? esc(S.publicUrl) : '<span class="muted">koʻrsatilmagan (PUBLIC_URL)</span>') + '</dd>';
+  const h = $("#botHelp");
+  if (!b.configured) { h.hidden = false; h.innerHTML = 'Bot yoqilmagan. <b>@BotFather</b> dan token oling, serverdagi <code>.env</code> fayliga <code>TELEGRAM_BOT_TOKEN=...</code> deb yozing va serverni qayta ishga tushiring. Token xavfsizlik uchun faqat serverda saqlanadi, bu sahifada koʻrsatilmaydi.'; }
+  else if (!b.running) { h.hidden = false; h.textContent = "Bot ishga tushmadi" + (b.lastError ? ": " + b.lastError : ".") + " Serverning internetga (api.telegram.org) chiqishini tekshiring."; }
+  else if (!S.publicUrl) { h.hidden = false; h.innerHTML = 'Telegram xabarlaridagi «Saytda» tugmasi chiqishi uchun <code>.env</code> ga <code>PUBLIC_URL=https://sizning-domen.uz</code> qoʻshing (faqat https manzil).'; }
+  else h.hidden = true;
+  $("#setChat").value = set.notifyChatId || ""; $("#setAuto").checked = !!set.notifyAdmins;
+  $("#btnTest").disabled = !b.running;
+}
+function renderTg(){
+  $("#cTg").textContent = S.tgusers.length ? "(" + S.tgusers.length + ")" : "";
+  $("#tgbody").innerHTML = S.tgusers.length ? S.tgusers.map(t =>
+    '<tr><td><b>' + esc(t.name || "—") + '</b></td><td class="muted">' + (t.username ? "@" + esc(t.username) : "—") + '</td>' +
+    '<td class="num">' + (t.phone ? esc(t.phone) : '<span class="muted">—</span>') + '</td>' +
+    '<td>' + (t.linked ? esc(t.linked) + ' <span class="muted">(' + esc(ROLE[t.role] || "") + ')</span>' : '<span class="muted">ulanmagan</span>') + '</td>' +
+    '<td><label class="chk"><input type="checkbox" data-tgnotify="' + esc(t.id) + '"' + (t.notifyNew ? " checked" : "") + '> <span>' + (t.notifyNew ? "yoqilgan" : "oʻchirilgan") + '</span></label></td>' +
+    '<td>' + (t.blocked ? '<span class="badge urgent">Bloklangan</span>' : '<span class="badge" style="--c:var(--s-hal)">Faol</span>') + '</td>' +
+    '<td class="num muted">' + esc(fmtDate(t.createdAt)) + '</td>' +
+    '<td><button type="button" class="btn sm" data-tgblock="' + esc(t.id) + '" data-blocked="' + (t.blocked ? 1 : 0) + '">' + (t.blocked ? "Blokdan chiqarish" : "Bloklash") + '</button></td></tr>').join("")
+    : '<tr><td colspan="8" class="muted" style="padding:22px;text-align:center">Hozircha botdan hech kim foydalanmagan.</td></tr>';
+}
+async function loadTelegram(){
+  const [s, t] = await Promise.all([Auth.api("/super/settings"), Auth.api("/super/tgusers")]);
+  S.settings = s.settings; S.bot = s.bot; S.publicUrl = s.publicUrl; S.tgusers = t.users || []; S.loaded.telegram = true;
+  renderBot(); renderTg();
+}
+
+/* =========================================================== LOG */
+const ACTION = {
+  "report.create": "Murojaat yuborildi", "report.delete": "Murojaat oʻchirildi", "response.set": "Javob / holat", "user.role": "Rol oʻzgartirildi",
+  "user.block": "Bloklandi", "user.unblock": "Blokdan chiqarildi", "user.delete": "Foydalanuvchi oʻchirildi", "user.create": "Foydalanuvchi yaratildi",
+  "user.password": "Parol tiklandi", "telegram.link": "Telegram ulandi", "telegram.unlink": "Telegram uzildi", "settings.set": "Sozlamalar", "import": "Maʼlumot koʻchirildi",
+  "tg.block": "Bot foydalanuvchisi bloklandi", "tg.unblock": "Bot foydalanuvchisi blokdan chiqarildi"
+};
+function renderLog(){
+  const rows = S.audit.slice(0, S.logLimit);
+  $("#lbody").innerHTML = rows.length ? rows.map(a =>
+    '<tr><td class="num muted" style="white-space:nowrap">' + esc(fmtDate(a.ts)) + '</td><td>' + esc(a.actorName || "—") + '</td><td>' + esc(ACTION[a.action] || a.action) + '</td>' +
+    '<td class="num">' + esc(a.target || "") + '</td><td class="muted"><div class="cut" title="' + esc(a.detail || "") + '">' + esc(a.detail || "") + '</div></td></tr>').join("")
+    : '<tr><td colspan="5" class="muted" style="padding:22px;text-align:center">Jurnal boʻsh.</td></tr>';
+  $("#btnLogMore").hidden = S.audit.length <= S.logLimit;
+}
+async function loadLog(){ const r = await Auth.api("/super/audit"); S.audit = r.items || []; S.loaded.log = true; renderLog(); }
+
+/* =========================================================== ACCOUNT / TELEGRAM LINK */
+async function renderTgLink(){
+  $("#tgErr").textContent = ""; $("#tgCodeBox").hidden = true;
+  let cfg = null;
+  try { cfg = await Auth.api("/config"); } catch (e) { $("#tgInfo").textContent = "Serverga ulanib boʻlmadi."; return; }
+  const me = Auth.current() || {}, open = $("#tgOpenBot");
+  if (!cfg.botUsername) { $("#tgInfo").textContent = "Telegram bot hozircha ishlamayapti."; open.hidden = true; $("#tgMake").hidden = true; $("#tgUnlink").hidden = true; return; }
+  open.href = "https://t.me/" + cfg.botUsername; open.textContent = "@" + cfg.botUsername + " ni ochish"; open.hidden = false;
+  $("#tgInfo").textContent = me.telegram ? "Hisobingiz Telegramga ulangan: yangi murojaatlar haqida xabar olasiz va holatni botdan oʻzgartira olasiz." : "Hisobingizni ulang: yangi murojaatlar Telegramga keladi va ularga botdan javob berishingiz mumkin.";
+  $("#tgMake").hidden = !!me.telegram; $("#tgUnlink").hidden = !me.telegram;
+}
+
+/* =========================================================== TABS */
+const TABS = ["overview", "users", "telegram", "log", "data", "account"];
+async function loadTab(t, silent){
+  try {
+    showErr(null);
+    if (t === "overview") { S.ov = await Auth.api("/super/overview"); renderOverview(); }
+    else if (t === "users") await loadUsers();
+    else if (t === "telegram") await loadTelegram();
+    else if (t === "log") await loadLog();
+    else if (t === "account") { $("#accInfo").textContent = S.me.name + " (" + S.me.login + "), super admin."; await renderTgLink(); }
+  } catch (e) { if (!silent) showErr(e); }
+}
+function showTab(t){
+  if (TABS.indexOf(t) < 0) t = "overview";
+  S.tab = t;
+  TABS.forEach(x => { $("#s-" + x).hidden = x !== t; });
+  $$("#tabs button").forEach(b => { if (b.dataset.tab === t) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
+  if (location.hash.slice(1) !== t) { try { history.replaceState(null, "", "#" + t); } catch (e) {} }
+  loadTab(t);
+}
+function refreshMust(){ const me = Auth.current(); $("#mustChange").hidden = !(me && me.mustChange); }
+
+/* =========================================================== ACTIONS */
+function userErr(e){ toast(e && e.message ? e.message : "Amalni bajarib boʻlmadi."); }
+let pwFor = null;
+function wire(){
+  $("#meBadge").textContent = /^super admin$/i.test(S.me.name) ? "Super admin" : S.me.name + " · super admin";
+  $("#btnOut").addEventListener("click", async () => { try { await Auth.logout(); } catch (e) {} location.replace("login.html"); });
+  $("#tabs").addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (b) showTab(b.dataset.tab); });
+  document.addEventListener("click", e => { const g = e.target.closest("[data-goto]"); if (g) { e.preventDefault(); showTab(g.dataset.goto); } });
+  $$("dialog [data-close]").forEach(b => b.addEventListener("click", () => b.closest("dialog").close()));
+
+  /* users */
+  $("#uq").addEventListener("input", renderUsers);
+  $("#uRole").addEventListener("change", renderUsers);
+  $("#btnNewUser").addEventListener("click", () => { $("#fNew").reset(); $("#nErr").textContent = ""; $("#nRole").value = "admin"; $("#dlgNew").showModal(); $("#nName").focus(); });
+  $("#fNew").addEventListener("submit", async e => {
+    e.preventDefault(); $("#nErr").textContent = "";
+    try {
+      await Auth.api("/super/users", { method: "POST", body: { name: $("#nName").value, login: $("#nLogin").value, password: $("#nPw").value, role: $("#nRole").value } });
+      $("#dlgNew").close(); toast("Foydalanuvchi yaratildi"); loadUsers();
+    } catch (x) { $("#nErr").textContent = x.message; }
+  });
+  $("#ubody").addEventListener("click", async e => {
+    const b = e.target.closest("[data-uact]"); if (!b) return;
+    const id = b.dataset.id, act = b.dataset.uact;
+    try {
+      if (act === "pw") { pwFor = id; $("#dlgPwInp").value = ""; $("#dlgErr").textContent = ""; $("#dlgTitle").textContent = "Parolni tiklash: " + b.dataset.name; $("#dlgPw").showModal(); $("#dlgPwInp").focus(); }
+      else if (act === "block") { const bl = b.dataset.blocked !== "1"; await Auth.api("/super/users/" + encodeURIComponent(id), { method: "PATCH", body: { blocked: bl } }); toast(bl ? "Foydalanuvchi bloklandi" : "Blokdan chiqarildi"); loadUsers(); }
+      else if (act === "untg") { await Auth.api("/super/users/" + encodeURIComponent(id), { method: "PATCH", body: { unlinkTelegram: true } }); toast("Telegram uzildi"); loadUsers(); }
+      else if (act === "del") {
+        if (S.delArmed !== "u:" + id) {
+          S.delArmed = "u:" + id; b.textContent = "Tasdiqlang";
+          setTimeout(() => { if (S.delArmed === "u:" + id) { S.delArmed = null; if (b.isConnected) b.textContent = "Oʻchirish"; } }, 4000);
+          return;
+        }
+        S.delArmed = null; await Auth.api("/super/users/" + encodeURIComponent(id), { method: "DELETE" }); toast("Foydalanuvchi oʻchirildi"); loadUsers();
+      }
+    } catch (x) { userErr(x); loadUsers(); }
+  });
+  $("#ubody").addEventListener("change", async e => {
+    const s = e.target.closest("select[data-role]"); if (!s) return;
+    try { await Auth.api("/super/users/" + encodeURIComponent(s.dataset.role), { method: "PATCH", body: { role: s.value } }); toast("Rol oʻzgartirildi"); }
+    catch (x) { userErr(x); }
+    loadUsers();
+  });
+  $("#fDlg").addEventListener("submit", async e => {
+    e.preventDefault(); $("#dlgErr").textContent = "";
+    try { await Auth.api("/super/users/" + encodeURIComponent(pwFor) + "/password", { method: "POST", body: { password: $("#dlgPwInp").value } }); $("#dlgPw").close(); toast("Parol yangilandi"); }
+    catch (x) { $("#dlgErr").textContent = x.message; }
+  });
+
+  /* telegram */
+  $("#fSet").addEventListener("submit", async e => {
+    e.preventDefault(); $("#setErr").textContent = "";
+    try {
+      const r = await Auth.api("/super/settings", { method: "PUT", body: { notifyChatId: $("#setChat").value.trim(), notifyAdmins: $("#setAuto").checked } });
+      S.settings = r.settings; toast("Sozlamalar saqlandi");
+    } catch (x) { $("#setErr").textContent = x.message; }
+  });
+  $("#btnTest").addEventListener("click", async () => {
+    $("#setErr").textContent = "";
+    const b = $("#btnTest"); b.disabled = true;
+    try { await Auth.api("/super/bot/test", { method: "POST" }); toast("Test xabar yuborildi"); }
+    catch (x) { $("#setErr").textContent = x.message; }
+    finally { b.disabled = !(S.bot && S.bot.running); }
+  });
+  $("#tgbody").addEventListener("change", async e => {
+    const c = e.target.closest("[data-tgnotify]"); if (!c) return;
+    try { await Auth.api("/super/tgusers/" + encodeURIComponent(c.dataset.tgnotify), { method: "PATCH", body: { notifyNew: c.checked } }); loadTelegram(); }
+    catch (x) { userErr(x); loadTelegram(); }
+  });
+  $("#tgbody").addEventListener("click", async e => {
+    const b = e.target.closest("[data-tgblock]"); if (!b) return;
+    try { await Auth.api("/super/tgusers/" + encodeURIComponent(b.dataset.tgblock), { method: "PATCH", body: { blocked: b.dataset.blocked !== "1" } }); loadTelegram(); }
+    catch (x) { userErr(x); }
+  });
+
+  /* log */
+  $("#btnLogMore").addEventListener("click", () => { S.logLimit += 200; renderLog(); });
+
+  /* data */
+  $("#btnExport").addEventListener("click", async () => {
+    try {
+      const r = await Auth.blob("/super/export");
+      const url = URL.createObjectURL(r.blob), a = document.createElement("a");
+      a.href = url; a.download = r.filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (x) { userErr(x); }
+  });
+  $("#impFile").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const fr = new FileReader(); fr.onload = () => { $("#impText").value = String(fr.result || ""); }; fr.readAsText(f);
+  });
+  $("#btnImport").addEventListener("click", async () => {
+    $("#impErr").textContent = ""; $("#impOk").textContent = "";
+    let d; try { d = JSON.parse($("#impText").value.trim()); } catch (x) { $("#impErr").textContent = "Matn toʻgʻri JSON emas."; return; }
+    try {
+      const r = await Auth.api("/super/import", { method: "POST", body: d });
+      $("#impOk").textContent = "Koʻchirildi: " + r.reports + " ta murojaat, " + r.responses + " ta javob, " + r.photos + " ta rasm. Oʻtkazib yuborildi: " + r.skipped + ".";
+    } catch (x) { $("#impErr").textContent = x.message; }
+  });
+
+  /* account */
+  $("#fPw").addEventListener("submit", async e => {
+    e.preventDefault(); const err = $("#pwErr"); err.textContent = "";
+    const o = $("#pwOld").value, n = $("#pwNew").value, n2 = $("#pwNew2").value;
+    if (!o) { err.textContent = "Joriy parolni kiriting."; $("#pwOld").focus(); return; }
+    if (n !== n2) { err.textContent = "Yangi parollar bir xil emas."; $("#pwNew2").focus(); return; }
+    try { await Auth.changePassword(o, n); $("#fPw").reset(); refreshMust(); toast("Parol oʻzgartirildi"); }
+    catch (x) { err.textContent = x.message; }
+  });
+  $("#tgMake").addEventListener("click", async () => {
+    $("#tgErr").textContent = "";
+    try {
+      const r = await Auth.api("/auth/telegram-link", { method: "POST" });
+      if (!r.botUsername) { $("#tgErr").textContent = "Bot hozir ishlamayapti."; return; }
+      $("#tgCode").textContent = "/link " + r.code; $("#tgDeep").href = "https://t.me/" + r.botUsername + "?start=link_" + r.code; $("#tgCodeBox").hidden = false;
+    } catch (x) { $("#tgErr").textContent = x.message; }
+  });
+  $("#tgUnlink").addEventListener("click", async () => {
+    try { await Auth.api("/auth/telegram-link", { method: "DELETE" }); await Auth.refresh(); renderTgLink(); toast("Telegram ulanishi uzildi."); }
+    catch (x) { $("#tgErr").textContent = x.message; }
+  });
+
+  window.addEventListener("storage", e => { if (e.key === Auth.KEYS.token) Auth.refresh().then(guard); });
+  window.addEventListener("hashchange", () => { const t = location.hash.slice(1); if (TABS.indexOf(t) >= 0 && t !== S.tab) showTab(t); });
+
+  // live: changes from the site, the bot or other staff refresh the visible tab
+  Auth.subscribe(async ev => {
+    if (ev.kind === "users" || ev.kind === "tg") { await Auth.refresh(); if (!guard()) return; refreshMust(); }
+    if (ev.v !== S.version) { S.version = ev.v; if (S.tab !== "account" && S.tab !== "data") loadTab(S.tab, true); }
+  }, up => { S.live = up; updateBadge(); });
+}
+
+(async () => {
+  try { await Auth.init(); } catch (e) {}
+  if (!guard()) return;
+  document.body.classList.add("ready");
+  wire(); refreshMust(); updateBadge();
+  try { const u = await Auth.api("/super/users"); S.users = u.users || []; $("#cUsers").textContent = "(" + S.users.length + ")"; } catch (e) {}
+  showTab(location.hash.slice(1));
+})();
+})();
+</script>
+</body>
+</html>

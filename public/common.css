@@ -1,0 +1,62 @@
+:root{
+  box-sizing:border-box;
+  --bg:#E8EEE4; --panel:#F6F8F3; --input:#FFFFFF; --ink:#173020; --muted:#53655A; --line:#C8D4C3;
+  --accent:#2B7447; --accent-ink:#FFFFFF; --focus:#1B5FA8; --ring:#B3C8AB; --danger:#B3261E;
+  --t-chirigan:#8F5322; --t-zarar:#D26A12; --t-qurigan:#B08A12; --t-kesish:#C42B2B; --t-yashil:#2A6DB3;
+  --s-yangi:#3F5F85; --s-korib:#8F5A00; --s-hal:#1F6B3F; --s-rad:#6B5B5B;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1913; --panel:#16221B; --input:#0F1913; --ink:#E3EDE0; --muted:#9BAE9F; --line:#2A3B30;
+    --accent:#6CC38C; --accent-ink:#0C1A11; --focus:#7DB6F0; --ring:#2F4A38; --danger:#F08A82;
+    --t-chirigan:#C98A4B; --t-zarar:#F08A3C; --t-qurigan:#D9B84A; --t-kesish:#EF6A6A; --t-yashil:#5AA2E6;
+    --s-yangi:#8DB3DB; --s-korib:#E3B15A; --s-hal:#74CF97; --s-rad:#B6A6A6;
+  }
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+h1,h2,h3{font-family:"Bricolage Grotesque","Public Sans",system-ui,sans-serif;margin:0;line-height:1.15;letter-spacing:-.01em}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+[hidden]{display:none!important}
+
+.top{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line);padding-top:max(10px,env(safe-area-inset-top,0px))}
+.logo{flex:0 0 auto;width:34px;height:34px}
+.brand{min-width:0}
+.brand h1{font-size:20px;font-weight:700}
+.brand p{margin:0;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted)}
+.pill.admin{color:var(--accent);border-color:var(--accent)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 16px;border-radius:8px;border:1px solid var(--line);background:var(--input);cursor:pointer;font-weight:600;text-decoration:none;color:var(--ink);font-size:14.5px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:7px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.block{width:100%}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.inp,select,textarea{width:100%;border:1px solid var(--line);background:var(--input);border-radius:8px;padding:9px 11px}
+textarea{resize:vertical;min-height:96px}
+.lab{font-weight:600;font-size:14.5px;margin-bottom:5px;display:block}
+.help{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.fld{margin-bottom:14px}
+.err{color:var(--danger);font-size:13.5px;margin:5px 0 0}
+.err:empty{display:none}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px}
+.chk input{width:18px;height:18px;accent-color:var(--accent)}
+
+.badge{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);white-space:nowrap}
+.badge.urgent{--c:var(--danger)}
+.banner{padding:10px 12px;border-radius:8px;border:1px solid var(--s-korib);background:color-mix(in srgb,var(--s-korib) 12%,transparent);font-size:13.5px}
+.banner.ok{border-color:var(--s-hal);background:color-mix(in srgb,var(--s-hal) 12%,transparent)}
+.banner.bad{border-color:var(--danger);background:color-mix(in srgb,var(--danger) 10%,transparent)}
+
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;max-width:90vw;z-index:50;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+@media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
